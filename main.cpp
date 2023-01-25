@@ -9,9 +9,10 @@ int main(){
 
     ATMSim simulator = ATMSim(environment_boundaries, airport_data, true);
 
-    while(true) 
+    bool running = true;
+    while(running) 
     {
-        simulator.step();
+        running = simulator.step();
     }
 
     return 0;

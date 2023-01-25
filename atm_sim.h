@@ -25,7 +25,7 @@ class ATMSim{
 
         ATMSim(std::string environment_meta, std::string airport_information, bool render);
         int traffic_maximum;
-        void step();
+        bool step();
 
 
     
