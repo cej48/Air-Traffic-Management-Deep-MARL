@@ -11,11 +11,15 @@
                 "traffic.cpp",
                 "atm_sim.cpp",
                 "atmosphere.cpp",
+                "atm_interface.cpp",
                 "-o",
                 "${fileDirname}/main",
                 "-DARMA_DONT_USE_WRAPPER",
                 "-lopenblas",
-                "-llapack"
+                "-llapack",
+                "-lsfml-graphics ",
+                "-lsfml-window ",
+                "-lsfml-system"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -37,11 +41,15 @@
                 "traffic.cpp",
                 "atm_sim.cpp",
                 "atmosphere.cpp",
+                "atm_interface.cpp",
                 "-o",
                 "${fileDirname}/main",
                 "-DARMA_DONT_USE_WRAPPER",
                 "-lopenblas",
-                "-llapack"
+                "-llapack",
+                "-lsfml-graphics ",
+                "-lsfml-window ",
+                "-lsfml-system"
             ],
             "options": {
                 "cwd": "${fileDirname}"
