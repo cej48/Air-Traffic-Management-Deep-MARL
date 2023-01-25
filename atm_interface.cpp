@@ -1,4 +1,5 @@
 #include "atm_interface.h"
+#include <SFML/Graphics.hpp>
 
 
 
