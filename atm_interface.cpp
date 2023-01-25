@@ -1,7 +1,78 @@
 #include "atm_interface.h"
 #include <SFML/Graphics.hpp>
 
+bool ATMInterface::input_handler()
+{
+    sf::Event event;
+    bool update_view = false;
+    int mouse_delta_x=0;
+    int mouse_delta_y=0;
 
+    while (window->pollEvent(event))
+    {
+        switch(event.type){
+            case (sf::Event::Closed):
+            {
+                window->close();
+                return 0;
+            }
+        
+            case (sf::Event::Resized):
+                {
+                this->view_width = event.size.width;
+                this->view_height = event.size.height;
+                update_view = true;
+                }
+            case (sf::Event::KeyPressed):
+            {
+                switch (event.key.code){
+                    case (sf::Keyboard::Escape):
+                    {
+                        window->close();
+                        return 0;
+                    }
+
+                }
+            } break;
+            case (sf::Event::MouseWheelScrolled):
+            {
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+                {
+                    this->zoom+=event.mouseWheelScroll.delta*0.1;
+                    update_view=true;
+                }        
+            } break;
+            case (sf::Event::MouseButtonPressed):
+            {
+                switch (event.mouseButton.button){
+                    case (sf::Mouse::Left):
+                    {
+                        mouse_previous_x = event.mouseButton.x;
+                        mouse_previous_y = event.mouseButton.y;
+                    }
+                }
+            } break;
+            case (sf::Event::MouseMoved):
+            {
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                    mouse_delta_x = mouse_previous_x-event.mouseMove.x;
+                    mouse_delta_y = mouse_previous_y-event.mouseMove.y;
+                    mouse_previous_x = event.mouseMove.x;
+                    mouse_previous_y = event.mouseMove.y;
+                    update_view=true;
+                }
+            } break;
+            default:
+                break;
+        }
+    }
+    if (update_view){
+        view.move(mouse_delta_x*this->zoom, mouse_delta_y*this->zoom);
+        view.setSize(this->view_width*this->zoom, this->view_height*this->zoom);
+        window->setView(view);
+    }
+    return 1;
+}
 
 ATMInterface::ATMInterface(std::vector<Airport> airports)
 {
@@ -18,57 +89,12 @@ bool ATMInterface::step(std::vector<Traffic> &traffic)
     // std::cout<<traffic[0].callsign<<'\n';
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Green);
-    sf::Event event;
+    
+    bool returnval = this->input_handler();
 
-    while (window->pollEvent(event))
-    {
-        switch(event.type){
-            case (sf::Event::Closed):
-            {
-                window->close();
-                return 0;
-            }
-        
-            case (sf::Event::Resized):
-                {
-                // float height = view.getViewport
-                // sf::Vector2f size = view.getSize();
-                // float xscale = event.size.width/size.x;
-                // float yscale = event.size.height/size.y;
-                view.setSize(event.size.width*this->zoom, event.size.height*this->zoom);
-                // view.getCenter()
-                // view = sf::View(sf::FloatRect(0, 0, event.size.width*this->zoom, event.size.height*this->zoom));
-
-                }
-            case (sf::Event::KeyPressed):
-            {
-                switch (event.key.code){
-                    case (sf::Keyboard::Escape):
-                    {
-                        window->close();
-                        return 0;
-                    }
-
-                }
-            }
-            case (sf::Event::MouseWheelScrolled):
-            {
-                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
-                {
-                    // view.zoom(event.mouseWheelScroll.delta);
-                    // view.zoom(1+event.mouseWheelScroll.delta*0.01);
-                    this->zoom+=event.mouseWheelScroll.delta*0.01;
-                    view.setSize(view.getSize()*float(event.mouseWheelScroll.delta*0.01+1));
-                }        
-            }
-        }
-    }
-    // std::cout << sf::VideoMode::getDesktopMode().width << ", " << sf::VideoMode::getDesktopMode().height<<'\n';
-    // view.zoom(this->zoom);
-    window->setView(view);
     window->clear();
     window->draw(shape);
     window->display();
-    return 1;
+    return returnval;
 
 }
