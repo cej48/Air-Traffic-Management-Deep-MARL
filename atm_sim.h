@@ -15,8 +15,8 @@ class ATMSim{
     float longitude_max;
 
     Atmosphere* environment;
-    std::vector<Traffic> traffic = std::vector<Traffic>();
-    std::vector<Airport> airports = std::vector<Airport>();
+    std::vector<Traffic*> traffic = std::vector<Traffic*>();
+    std::vector<Airport*> airports = std::vector<Airport*>();
 
     bool render;
     ATMInterface* interface;    
