@@ -7,11 +7,12 @@ int main(){
     std::string environment_boundaries = "environment_boundaries.json";
     std::string airport_data = "airport_data.json";
 
-    ATMSim simulator = ATMSim(environment_boundaries, airport_data);
+    ATMSim simulator = ATMSim(environment_boundaries, airport_data, true, 60);
 
-    for (int i=0;i<100;i++) 
+    bool running = true;
+    while(running) 
     {
-        simulator.step();
+        running = simulator.step();
     }
 
     return 0;

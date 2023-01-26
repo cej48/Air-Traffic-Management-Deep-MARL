@@ -3,7 +3,6 @@
         {"lattitude": 51.150961,
           "longitude": -0.177355,
         "heading": 90},
-
     "EGLL": 
         {"lattitude": 51.471463,
           "longitude": -0.454469,
@@ -21,8 +20,8 @@
               "longitude": 0.234119,
               "heading": 40},
     "EGMC": 
-            {"lattitude": 51.884445,
-              "longitude": 0.234119,
+            {"lattitude": 51.569800,
+              "longitude": 0.691855,
               "heading": 40}
 
 }
