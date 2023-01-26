@@ -1,5 +1,6 @@
 #include "atm_interface.h"
 #include <SFML/Graphics.hpp>
+#include <math.h>
 
 ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor)
 {
@@ -20,12 +21,37 @@ ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*
     window->setFramerateLimit(60);
 }
 
+float get_distance_vec2(sf::Vector2f a, sf::Vector2f b){
+    return sqrt(pow(a.x-b.x,2) + pow(a.y-b.y, 2));
+}
+
+void ATMInterface::selector(sf::Event &event){
+    bool selected=false;
+    for (int i = 0; i < traffic->size(); i++) 
+        {
+            Traffic* traffic_draw = traffic->at(i);
+            float distance = get_distance_vec2(sf::Vector2f(traffic_draw->position[0]*scale_factor, traffic_draw->position[1]*-1*scale_factor),
+                                            window->mapPixelToCoords(
+                                            sf::Vector2i(event.mouseButton.x, event.mouseButton.y)));
+            std::cout<<distance<<'\n';
+            if (distance<400 && !selected){
+                selected=true;
+                this->selector_code = traffic_draw->callsign;
+            }
+        }
+    if (!selected){
+        this->selector_code = "";
+    }
+}
+
 bool ATMInterface::input_handler()
 {
     sf::Event event;
     bool update_view = false;
-    int mouse_delta_x=0;
-    int mouse_delta_y=0;
+
+    int new_center_y = view.getCenter().y;
+    int new_center_x = view.getCenter().x;
+
 
     while (window->pollEvent(event))
     {
@@ -61,23 +87,38 @@ bool ATMInterface::input_handler()
                     update_view=true;
                 }        
             } break;
+            case(sf::Event::MouseButtonPressed):
+            {
+                switch (event.mouseButton.button)
+                {
+                    case (sf::Mouse::Left):
+                    {   
+                        mouse_previous = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
+                        center_fix = view.getCenter();
+                        selector(event);
+                    }
+                }
+            } break;
+            case(sf::Event::MouseButtonReleased):
+            {
+
+            }
             case (sf::Event::MouseMoved):
             {   
+
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-                    mouse_delta_x = (mouse_previous_x-event.mouseMove.x);
-                    mouse_delta_y = (mouse_previous_y-event.mouseMove.y);
+
+                    new_center_x = center_fix.x + (mouse_previous.x-event.mouseMove.x)*this->zoom;
+                    new_center_y = center_fix.y + (mouse_previous.y-event.mouseMove.y)*this->zoom;
                     update_view=true;
                 }
-                mouse_previous_x = event.mouseMove.x;
-                mouse_previous_y = event.mouseMove.y;
             } break;
             default:
                 break;
         }
     }
     if (update_view){
-        std::cout<<mouse_delta_x<<'\n';
-        view.move(mouse_delta_x*this->zoom, mouse_delta_y*this->zoom);
+        view.setCenter(new_center_x, new_center_y);
         view.setSize(this->view_width*this->zoom, this->view_height*this->zoom);
         window->setView(view);
     }
@@ -111,21 +152,46 @@ void ATMInterface::draw_traffic()
         Traffic* traffic_draw = traffic->at(i);
         sf::Text text;
 
+        sf::Color* colour = &this->radar_white;
+        if (traffic_draw->callsign == this->selector_code){
+            colour = &this->radar_yellow;
+        }
+
         text.setFont(font);
         text.setString(traffic_draw->callsign);
         text.setCharacterSize(240);
-        text.setFillColor(radar_white);
+        text.setFillColor(*colour);
         text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor-300);
+        window->draw(text);
+        
+        text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+100);
+        text.setCharacterSize(180);
+        text.setString(traffic_draw->destination);
+        window->draw(text);
+
+        text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+250);
+        text.setString(std::to_string(int(traffic_draw->speed)));
+        window->draw(text);
+
+        text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+400);
+        text.setString(std::to_string(int(traffic_draw->position[2])));
+        window->draw(text);
 
         sf::RectangleShape rectangle(sf::Vector2f(100, 100));
-        rectangle.setFillColor(radar_white);
+        rectangle.setFillColor(*colour);
         rectangle.setPosition(traffic_draw->position[0]*this->scale_factor, traffic_draw->position[1]*-1*this->scale_factor);
-        window->draw(text);
+
         window->draw(rectangle);    
     
         }
         
     }
+
+    // std::string ATMInterface::alt_display(double altitude)
+    // {
+    //     std::string = 
+    //     return std::string();
+    // }
 
 bool ATMInterface::step()
 {

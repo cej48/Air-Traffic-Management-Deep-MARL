@@ -15,11 +15,14 @@ public:
     std::string destination; 
     std:: string callsign;
     bool instructed;
+
+    int framerate;
     
 
     Traffic(const double longitude, const double lattitude, 
             const double speed, const double rate_of_climb, 
-            const double altitude, std::string destination, std::string callsign);
+            const double altitude, std::string destination, 
+            std::string callsign, int framerate);
 
     void step(Weather* weather);
 };

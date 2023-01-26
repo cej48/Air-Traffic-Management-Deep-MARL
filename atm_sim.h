@@ -13,6 +13,7 @@ class ATMSim{
     float lattitude_max;
     float longitude_min;
     float longitude_max;
+    int framerate;
 
     Atmosphere* environment;
     std::vector<Traffic*> traffic = std::vector<Traffic*>();
@@ -23,7 +24,7 @@ class ATMSim{
 
     public:
 
-        ATMSim(std::string environment_meta, std::string airport_information, bool render);
+        ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate);
         int traffic_maximum;
         bool step();
 
