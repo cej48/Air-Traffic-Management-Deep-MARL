@@ -16,8 +16,8 @@ ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*
     height = sf::VideoMode::getDesktopMode().height;
     window = new sf::RenderWindow(sf::VideoMode(width/2, height/2), "Air traffic management sim");
 
-    view = sf::View(sf::FloatRect(center.x, center.y, width/2, height/2));
-    window->setView(view);
+    this->scene_view = sf::View(sf::FloatRect(center.x, center.y, width/2, height/2));
+    gui_view = sf::View(sf::FloatRect(0, 0, width/2, height/2));
     window->setFramerateLimit(60);
 }
 
@@ -33,7 +33,6 @@ void ATMInterface::selector(sf::Event &event){
             float distance = get_distance_vec2(sf::Vector2f(traffic_draw->position[0]*scale_factor, traffic_draw->position[1]*-1*scale_factor),
                                             window->mapPixelToCoords(
                                             sf::Vector2i(event.mouseButton.x, event.mouseButton.y)));
-            std::cout<<distance<<'\n';
             if (distance<400 && !selected){
                 selected=true;
                 this->selector_code = traffic_draw->callsign;
@@ -46,26 +45,29 @@ void ATMInterface::selector(sf::Event &event){
     }
 }
 
+void ATMInterface::action_parser(std::string text)
+{
+
+}
+
 bool ATMInterface::input_handler()
 {
     sf::Event event;
     bool update_view = false;
 
-    int new_center_y = view.getCenter().y;
-    int new_center_x = view.getCenter().x;
+    int new_center_y = this->scene_view.getCenter().y;
+    int new_center_x = this->scene_view.getCenter().x;
 
 
     while (window->pollEvent(event))
     {
         switch(event.type){
-            case (sf::Event::Closed):
-            {
+            case (sf::Event::Closed):{
                 window->close();
                 return 0;
             }
         
-            case (sf::Event::Resized):
-                {
+            case (sf::Event::Resized):{
                 this->view_width = event.size.width;
                 this->view_height = event.size.height;
                 update_view = true;
@@ -73,12 +75,32 @@ bool ATMInterface::input_handler()
             
             case (sf::Event::TextEntered):{
                 if (this->selector_bool){
-                    std::cout<<event.text.unicode<<'\n';
+                    switch (event.text.unicode){
+                        case(8):{
+                            if (!this->input_text.empty()){
+                                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)){
+                                    this->input_text = "";
+                                }else{
+                                    this->input_text.pop_back();
+                                }
+                            }
+                        }break;
+                        case(27):{
+                            this->selector_bool=false;
+                            this->selector_code="";
+                        case(13):{
+                            action_parser(input_text);
+                            this->input_text="";
+                        }break;
+                        }break;
+                        default:{
+                            this->input_text+=event.text.unicode;
+                        }
+                    }
                 }
             } break;
 
-            case (sf::Event::KeyPressed):
-            {
+            case (sf::Event::KeyPressed):{
                 if (!this->selector_bool){
                     switch (event.key.code){
                         case (sf::Keyboard::Escape):
@@ -89,32 +111,28 @@ bool ATMInterface::input_handler()
                     }
                 }
             } break;
-            case (sf::Event::MouseWheelScrolled):
-            {
+
+            case (sf::Event::MouseWheelScrolled):{
                 if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
                 {
                     this->zoom+=event.mouseWheelScroll.delta;
                     update_view=true;
                 }        
             } break;
-            case(sf::Event::MouseButtonPressed):
-            {
+
+            case(sf::Event::MouseButtonPressed):{
                 switch (event.mouseButton.button)
                 {
                     case (sf::Mouse::Left):
                     {   
                         mouse_previous = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
-                        center_fix = view.getCenter();
+                        center_fix = this->scene_view.getCenter();
                         selector(event);
                     }
                 }
             } break;
-            case(sf::Event::MouseButtonReleased):
-            {
 
-            }
-            case (sf::Event::MouseMoved):
-            {   
+            case (sf::Event::MouseMoved):{   
 
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
 
@@ -123,16 +141,27 @@ bool ATMInterface::input_handler()
                     update_view=true;
                 }
             } break;
+
             default:
                 break;
         }
     }
     if (update_view){
-        view.setCenter(new_center_x, new_center_y);
-        view.setSize(this->view_width*this->zoom, this->view_height*this->zoom);
-        window->setView(view);
+        this->scene_view.setCenter(new_center_x, new_center_y);
+        this->scene_view.setSize(this->view_width*this->zoom, this->view_height*this->zoom);
+        this->gui_view.setSize(this->view_width, this->view_height);
     }
     return 1;
+}
+
+void ATMInterface::draw_gui(std::string text)
+{   
+    window->setView(this->gui_view);
+
+    sf::RectangleShape rectangle(sf::Vector2f(100, 100));
+    rectangle.setFillColor(this->radar_green);
+    rectangle.setPosition(0,0);
+    window->draw(rectangle);
 }
 
 void ATMInterface::draw_airports()
@@ -154,6 +183,7 @@ void ATMInterface::draw_airports()
         window->draw(rectangle);    
     }
 }
+
 
 void ATMInterface::draw_traffic()
     {
@@ -198,15 +228,15 @@ void ATMInterface::draw_traffic()
     }
 bool ATMInterface::step()
 {
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
-
-    
-    bool returnval = this->input_handler();
+    window->setView(this->scene_view);
 
     window->clear();
+    bool returnval = this->input_handler();
     this->draw_airports();
     this->draw_traffic();
+
+    draw_gui(this->input_text);
+
     window->display();
     return returnval;
 }

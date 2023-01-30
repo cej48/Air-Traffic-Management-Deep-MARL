@@ -7,11 +7,16 @@ int main(){
     std::string environment_boundaries = "environment_boundaries.json";
     std::string airport_data = "airport_data.json";
 
-    ATMSim simulator = ATMSim(environment_boundaries, airport_data, true, 60);
+    ATMSim simulator = ATMSim(environment_boundaries, airport_data, true, 60, 5);
 
     bool running = true;
+    int count=0;
     while(running) 
     {
+        count++;
+        if (count==1e9){
+            std::cout<<"fast"<<'\n';
+        }
         running = simulator.step();
     }
 

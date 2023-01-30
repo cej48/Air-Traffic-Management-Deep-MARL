@@ -4,14 +4,14 @@
 Traffic::Traffic(double longitude, double lattitude, 
                 const double speed, const double rate_of_climb, 
                 const double altitude, std::string destination,
-                std::string callsign, int framerate)
+                std::string callsign, int frame_length)
 {
     this->position = arma::vec({longitude, lattitude, altitude});
     this->speed = speed;
     this->rate_of_climb = rate_of_climb;
     this->destination = destination;
     this->callsign = callsign;
-    this->framerate = framerate;
+    this->frame_length = frame_length;
 }
 
 // 1 step 1/60th of a second

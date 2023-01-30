@@ -16,7 +16,7 @@ public:
     std:: string callsign;
     bool instructed;
 
-    int framerate;
+    int frame_length;
     
 
     Traffic(const double longitude, const double lattitude, 

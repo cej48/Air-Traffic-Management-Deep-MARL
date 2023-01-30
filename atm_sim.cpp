@@ -4,9 +4,10 @@
 
 using json = nlohmann::json;
 
-ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate)
+ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length)
 {
     this->framerate = framerate;
+    this->frame_length = frame_length;
 
     std::ifstream file (environment_meta);
     json boundaries_json = json::parse(file);
@@ -26,8 +27,8 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
 
     environment = new Atmosphere(100,100,10);
 
-    traffic.push_back(new Traffic(0.f, 51.f, 150.f, 0.f, 1000.f, "EGKK", "BAW32P", this->framerate));
-
+    traffic.push_back(new Traffic(0.f, 51.f, 150.f, 0.f, 1000.f, "EGKK", "BAW32P", this->frame_length));
+    traffic.push_back(new Traffic(0.f, 52.f, 150.f, 0.f, 1000.f, "EGKK", "BAW34P", this->frame_length));
     this->render = render;
     if (render){
         interface = new ATMInterface(&airports, &traffic, 10000);
