@@ -23,6 +23,7 @@ class ATMInterface{
     sf::Font font;
 
     std::string selector_code;
+    bool selector_bool=false;
     // Track mouse movement to drag display
 
     int width;

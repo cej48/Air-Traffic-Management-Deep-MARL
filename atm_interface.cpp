@@ -37,10 +37,12 @@ void ATMInterface::selector(sf::Event &event){
             if (distance<400 && !selected){
                 selected=true;
                 this->selector_code = traffic_draw->callsign;
+                this->selector_bool = true;
             }
         }
     if (!selected){
         this->selector_code = "";
+        this->selector_bool=false;
     }
 }
 
@@ -67,16 +69,24 @@ bool ATMInterface::input_handler()
                 this->view_width = event.size.width;
                 this->view_height = event.size.height;
                 update_view = true;
+                }break;
+            
+            case (sf::Event::TextEntered):{
+                if (this->selector_bool){
+                    std::cout<<event.text.unicode<<'\n';
                 }
+            } break;
+
             case (sf::Event::KeyPressed):
             {
-                switch (event.key.code){
-                    case (sf::Keyboard::Escape):
-                    {
-                        window->close();
-                        return 0;
+                if (!this->selector_bool){
+                    switch (event.key.code){
+                        case (sf::Keyboard::Escape):
+                        {
+                            window->close();
+                            return 0;
+                        }
                     }
-
                 }
             } break;
             case (sf::Event::MouseWheelScrolled):
@@ -186,13 +196,6 @@ void ATMInterface::draw_traffic()
         }
         
     }
-
-    // std::string ATMInterface::alt_display(double altitude)
-    // {
-    //     std::string = 
-    //     return std::string();
-    // }
-
 bool ATMInterface::step()
 {
     sf::CircleShape shape(100.f);
