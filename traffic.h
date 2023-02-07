@@ -4,6 +4,7 @@
 #include <armadillo>
 #include "weather.h"
 #include <string>
+#include "airport.h"
 
 class Traffic {
 public:
@@ -12,16 +13,21 @@ public:
     double heading;
     double rate_of_climb;
     double rate_of_turn;
-    std::string destination; 
+    Airport* destination; 
     std:: string callsign;
-    bool instructed;
 
-    int framerate;
-    
+    bool infringement=false;
+
+
+    double target_heading;
+    double target_speed;
+    double target_altitude;
+
+    int frame_length;
 
     Traffic(const double longitude, const double lattitude, 
             const double speed, const double rate_of_climb, 
-            const double altitude, std::string destination, 
+            const double altitude, Airport* destination, 
             std::string callsign, int framerate);
 
     void step(Weather* weather);

@@ -1,23 +1,24 @@
 #pragma once
 #include <string>
+#include <armadillo>
 
 class Airport{
     public:
         // Public to avoid excessive dataclass getter/setter
-        double lattitude;
-        double longitude;
+        arma::vec3 position;
         double runway_heading;
         std::string code;
 
         Airport(){
-            double lattitude = 0;
-            double longitude = 0;
+
+            arma::vec3 position;
             double runway_heading = 0;
             this->code = "";
         }
         Airport(double lattitude, double longitude, double runway_heading, std::string code){
-            this->lattitude = lattitude;
-            this->longitude = longitude;
+            this->position[1] = lattitude;
+            this->position[0] = longitude;
+            this->position[2] = 0;
             this->runway_heading = runway_heading;
             this->code = code;
         }
