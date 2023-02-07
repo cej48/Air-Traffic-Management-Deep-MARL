@@ -7,6 +7,7 @@ class ATMInterface{
     sf::Color radar_green = sf::Color(0,255,0);
     sf::Color radar_white = sf::Color(255,255,255);
     sf::Color radar_yellow = sf::Color(255,255,0);
+    sf::Color radar_red = sf::Color(255, 0, 0);
 
     sf::Vector2f mouse_previous = sf::Vector2f(0,0);
     sf::Vector2f center_fix;

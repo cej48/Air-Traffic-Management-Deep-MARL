@@ -15,6 +15,7 @@ class ATMSim{
     float longitude_max;
 
     float frame_length;
+    int count =0;
 
     int framerate;
 
@@ -23,7 +24,13 @@ class ATMSim{
     std::vector<Airport*> airports = std::vector<Airport*>();
 
     bool render;
-    ATMInterface* interface;    
+    ATMInterface* interface;
+
+    float calculate_distance(arma::vec3 a, arma::vec3 b);
+
+    void detect_closure_infringement();
+    void detect_traffic_arrival();
+
 
     public:
 

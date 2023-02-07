@@ -5,7 +5,7 @@
 
 Traffic::Traffic(double longitude, double lattitude, 
                 const double speed, const double rate_of_climb, 
-                const double altitude, std::string destination,
+                const double altitude, Airport* destination,
                 std::string callsign, int frame_length)
 {
     this->position = arma::vec({longitude, lattitude, altitude});
@@ -16,14 +16,16 @@ Traffic::Traffic(double longitude, double lattitude,
     this->frame_length = frame_length;
 }
 
-// 1 step 1/60th of a second
-// at 60hz, 1 second = 60 steps.
+// let's make 1 step 1 second.
 void Traffic::step(Weather* weather)
 {
 
     this->position[2] = this->target_altitude;
-
-    this->position[0]+=sin(this->target_heading*(PI/180))*1e-5;
-    this->position[1]+=cos(this->target_heading*(PI/180))*1e-5;
-
+    this->position[0]+=sin(this->target_heading*(PI/180))*1/pow(60,3)*this->speed;
+    this->position[1]+=cos(this->target_heading*(PI/180))*1/pow(60,3)*this->speed;
+    this->speed = this->target_speed;
+    // if (this->speed == 150){
+    //     this->infringement = true;
+    // }
+    // else{this->infringement=false;}
 }

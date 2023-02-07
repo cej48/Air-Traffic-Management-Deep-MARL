@@ -14,7 +14,7 @@ ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*
 
     font.loadFromFile("arial.ttf");
 
-    sf::Vector2 center(airports->at(0)->longitude*this->scale_factor, airports->at(0)->lattitude*-1*this->scale_factor);
+    sf::Vector2 center(airports->at(0)->position[0]*this->scale_factor, airports->at(0)->position[1]*-1*this->scale_factor);
 
     width = sf::VideoMode::getDesktopMode().width;
     height = sf::VideoMode::getDesktopMode().height;
@@ -56,15 +56,44 @@ void ATMInterface::action_parser(std::string text)
     }
     std::vector<std::string> words;
     boost::split(words, text, boost::is_any_of(", "), boost::token_compress_on);
-
-    if (!this->selector_bool){
-        for (int i = 0; i < traffic->size(); i++) 
-        {
+    for (int i = 0; i < traffic->size(); i++) 
+    {
+        // We havent selected anything
+        if (!this->selector_bool){
             if (traffic->at(i)->callsign == words[0]){
-                std::cout<<"Gotem"<<'\n';
+                this->selector_code = words[0];
+                this->selector_bool = true;
             };
-
         }
+        
+        // This isn't the correct aircraft.
+        if (this->selector_code != traffic->at(i)->callsign){
+            continue;
+        }
+
+        for (int w_index = 0; w_index<words.size(); w_index++){ 
+            
+            if (words[w_index]=="hdg"){
+                if (w_index>=words.size()){
+                    return;
+                    };
+                traffic->at(i)->target_heading = std::stof(words[w_index+1]);
+            }            
+            if (words[w_index]=="alt"){
+                if (w_index>=words.size()){
+                    return;
+                    };
+                traffic->at(i)->target_altitude = std::stof(words[w_index+1]);
+            }
+            if (words[w_index]=="spd"){
+                if (w_index>=words.size()){
+                    return;
+                    };
+                traffic->at(i)->target_speed = std::stof(words[w_index+1]);
+            }
+        
+        }
+
     }
 }
 
@@ -190,11 +219,11 @@ void ATMInterface::draw_airports()
         Airport* airport = airports->at(i);
         sf::Text text(airport->code, font, 240);
         text.setFillColor(radar_green);
-        text.setPosition(airport->longitude*this->scale_factor-500, airport->lattitude*-1*this->scale_factor-300);
+        text.setPosition(airport->position[0]*this->scale_factor-500, airport->position[1]*-1*this->scale_factor-300);
 
         sf::RectangleShape rectangle(sf::Vector2f(100, 100));
         rectangle.setFillColor(radar_green);
-        rectangle.setPosition(airport->longitude*this->scale_factor, airport->lattitude*-1*this->scale_factor);
+        rectangle.setPosition(airport->position[0]*this->scale_factor, airport->position[1]*-1*this->scale_factor);
         window->draw(text);
         window->draw(rectangle);    
     }
@@ -208,6 +237,9 @@ void ATMInterface::draw_traffic()
         Traffic* traffic_draw = traffic->at(i);
 
         sf::Color* colour = &this->radar_white;
+        if (traffic_draw->infringement){
+            colour = &this->radar_red;
+        }
         if (traffic_draw->callsign == this->selector_code){
             colour = &this->radar_yellow;
         }
@@ -219,7 +251,7 @@ void ATMInterface::draw_traffic()
         
         text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+100);
         text.setCharacterSize(180);
-        text.setString(traffic_draw->destination);
+        text.setString(traffic_draw->destination->code);
         window->draw(text);
 
         text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+250);
