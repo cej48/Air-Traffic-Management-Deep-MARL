@@ -14,10 +14,13 @@ public:
     double rate_of_turn;
     std::string destination; 
     std:: string callsign;
-    bool instructed;
+
+
+    double target_heading;
+    double target_speed;
+    double target_altitude;
 
     int frame_length;
-    
 
     Traffic(const double longitude, const double lattitude, 
             const double speed, const double rate_of_climb, 

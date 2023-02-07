@@ -1,5 +1,7 @@
 #include "traffic.h"
+#include <math.h>
 
+#define PI 3.14159265
 
 Traffic::Traffic(double longitude, double lattitude, 
                 const double speed, const double rate_of_climb, 
@@ -18,7 +20,10 @@ Traffic::Traffic(double longitude, double lattitude,
 // at 60hz, 1 second = 60 steps.
 void Traffic::step(Weather* weather)
 {
-    this->position+=1e-4;
-    this->position[2]+=1;
+
+    this->position[2] = this->target_altitude;
+
+    this->position[0]+=sin(this->target_heading*(PI/180))*1e-5;
+    this->position[1]+=cos(this->target_heading*(PI/180))*1e-5;
 
 }

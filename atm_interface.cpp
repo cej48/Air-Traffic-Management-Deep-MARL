@@ -1,12 +1,16 @@
 #include "atm_interface.h"
 #include <SFML/Graphics.hpp>
 #include <math.h>
+#include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
+#include <boost/algorithm/string/split.hpp> // Include for boost::split
 
 ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor)
 {
     this->scale_factor = scale_factor;
     this->airports = airports;
     this->traffic = traffic;
+    this->view_width = width/2;
+    this->view_height = height/2;
 
     font.loadFromFile("arial.ttf");
 
@@ -17,7 +21,7 @@ ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*
     window = new sf::RenderWindow(sf::VideoMode(width/2, height/2), "Air traffic management sim");
 
     this->scene_view = sf::View(sf::FloatRect(center.x, center.y, width/2, height/2));
-    gui_view = sf::View(sf::FloatRect(0, 0, width/2, height/2));
+    gui_view = sf::View(sf::FloatRect(this->view_width/2, this->view_height/2, this->view_width, this->view_height));
     window->setFramerateLimit(60);
 }
 
@@ -47,7 +51,21 @@ void ATMInterface::selector(sf::Event &event){
 
 void ATMInterface::action_parser(std::string text)
 {
+    if (text.empty()){
+        return;
+    }
+    std::vector<std::string> words;
+    boost::split(words, text, boost::is_any_of(", "), boost::token_compress_on);
 
+    if (!this->selector_bool){
+        for (int i = 0; i < traffic->size(); i++) 
+        {
+            if (traffic->at(i)->callsign == words[0]){
+                std::cout<<"Gotem"<<'\n';
+            };
+
+        }
+    }
 }
 
 bool ATMInterface::input_handler()
@@ -150,29 +168,27 @@ bool ATMInterface::input_handler()
         this->scene_view.setCenter(new_center_x, new_center_y);
         this->scene_view.setSize(this->view_width*this->zoom, this->view_height*this->zoom);
         this->gui_view.setSize(this->view_width, this->view_height);
+        this->gui_view.setCenter(this->view_width/2,this->view_height/2);
     }
     return 1;
 }
 
-void ATMInterface::draw_gui(std::string text)
+void ATMInterface::draw_gui(std::string in)
 {   
     window->setView(this->gui_view);
+    
+    sf::Text text(in, font, this->view_width*0.1);
+    text.setPosition(0, 0);
+    text.setFillColor(radar_yellow);
 
-    sf::RectangleShape rectangle(sf::Vector2f(100, 100));
-    rectangle.setFillColor(this->radar_green);
-    rectangle.setPosition(0,0);
-    window->draw(rectangle);
+    window->draw(text);
 }
 
 void ATMInterface::draw_airports()
 {
     for (int i = 0; i < airports->size(); i++) {
         Airport* airport = airports->at(i);
-        sf::Text text;
-
-        text.setFont(font);
-        text.setString(airport->code);
-        text.setCharacterSize(240);
+        sf::Text text(airport->code, font, 240);
         text.setFillColor(radar_green);
         text.setPosition(airport->longitude*this->scale_factor-500, airport->lattitude*-1*this->scale_factor-300);
 
@@ -190,16 +206,13 @@ void ATMInterface::draw_traffic()
     for (int i = 0; i < traffic->size(); i++) 
         {
         Traffic* traffic_draw = traffic->at(i);
-        sf::Text text;
 
         sf::Color* colour = &this->radar_white;
         if (traffic_draw->callsign == this->selector_code){
             colour = &this->radar_yellow;
         }
 
-        text.setFont(font);
-        text.setString(traffic_draw->callsign);
-        text.setCharacterSize(240);
+        sf::Text text(traffic_draw->callsign, font, 240);
         text.setFillColor(*colour);
         text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor-300);
         window->draw(text);
