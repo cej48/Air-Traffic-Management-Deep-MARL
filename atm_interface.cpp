@@ -4,11 +4,14 @@
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
 
-ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor)
+ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration)
 {
     this->scale_factor = scale_factor;
     this->airports = airports;
     this->traffic = traffic;
+
+    this->acceleration = acceleration;
+
     this->view_width = width/2;
     this->view_height = height/2;
 
@@ -154,7 +157,15 @@ bool ATMInterface::input_handler()
                         {
                             window->close();
                             return 0;
-                        }
+                        }break;
+                        case (sf::Keyboard::Right):
+                        {
+                            *this->acceleration-=1;
+                        }break;
+                        case (sf::Keyboard::Left):{
+                            *this->acceleration+=1;
+                            std::cout<<*this->acceleration<<'\n';
+                        }break;
                     }
                 }
             } break;

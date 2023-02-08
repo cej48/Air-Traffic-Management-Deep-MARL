@@ -10,6 +10,8 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     this->framerate = framerate;
     this->frame_length = frame_length;
 
+    this->acceleration=10; // adjusted by interface if req'd
+
     std::ifstream file (environment_meta);
     json boundaries_json = json::parse(file);
     file.close();
@@ -33,7 +35,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     traffic.push_back(new Traffic(0.f, 52.f, 150.f, 0.f, 1000.f, airports[0], "BAW35P", this->frame_length));
     this->render = render;
     if (render){
-        interface = new ATMInterface(&airports, &traffic, 10000);
+        interface = new ATMInterface(&airports, &traffic, 10000, &acceleration);
     }
 
 }
@@ -87,7 +89,11 @@ bool ATMSim::step()
     if (this->render){
         return_val = interface->step();
     }
-    if (count%60){
+
+    if (this->acceleration<1){
+        this->acceleration=1;
+    }
+    if (count%acceleration){
         return return_val;
     }
     for (auto item : traffic){

@@ -25,6 +25,8 @@ class ATMInterface{
     std::vector<Traffic*> *traffic;
     sf::Font font;
 
+    int *acceleration;
+
     std::string selector_code;
     bool selector_bool=false;
     std::string input_text = "";
@@ -44,6 +46,6 @@ class ATMInterface{
     // std::string alt_display();
 
     public:
-        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor);
+        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration);
         bool step();
 };
