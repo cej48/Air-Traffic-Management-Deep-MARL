@@ -67,11 +67,11 @@ void ATMSim::detect_closure_infringement()
 void ATMSim::detect_traffic_arrival()
 {
     for (int i=0; i<this->traffic.size(); i++){
-        if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833){
+        if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
+            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
             this->traffic.erase(this->traffic.begin()+i);
         }
     }
-    std::cout<<this->traffic.size()<<'\n';
 }
 
 // TODO: implement weather at position.
