@@ -213,6 +213,15 @@ bool ATMInterface::input_handler()
     return 1;
 }
 
+std::string ATMInterface::alt_to_string(double value)
+{
+    if (value<10000){
+        return std::to_string((int)value);
+    }
+
+    return "FL"+std::to_string((int)value/100);
+}
+
 void ATMInterface::draw_gui(std::string in)
 {   
     window->setView(this->gui_view);
@@ -270,7 +279,7 @@ void ATMInterface::draw_traffic()
         window->draw(text);
 
         text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+400);
-        text.setString(std::to_string(int(traffic_draw->position[2])));
+        text.setString(alt_to_string(traffic_draw->position[2]));
         window->draw(text);
 
         sf::RectangleShape rectangle(sf::Vector2f(100, 100));

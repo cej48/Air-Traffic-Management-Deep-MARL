@@ -7,17 +7,23 @@
 #include "airport.h"
 
 class Traffic {
+
+    void verify_constraints();
+
+    void adjust_params();
+
 public:
     arma::vec3 position;
     double speed;
     double heading;
-    double rate_of_climb;
-    double rate_of_turn;
     Airport* destination; 
     std:: string callsign;
 
     bool infringement=false;
 
+    double rate_of_climb;
+    double rate_of_turn;
+    double rate_of_speed;
 
     double target_heading;
     double target_speed;

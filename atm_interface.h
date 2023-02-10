@@ -43,6 +43,7 @@ class ATMInterface{
     void draw_gui(std::string text);
     void action_parser(std::string text);
 
+    std::string alt_to_string(double value);
     // std::string alt_display();
 
     public:

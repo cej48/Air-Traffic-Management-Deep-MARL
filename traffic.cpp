@@ -3,10 +3,11 @@
 
 #define PI 3.14159265
 
-Traffic::Traffic(double longitude, double lattitude, 
-                const double speed, const double rate_of_climb, 
-                const double altitude, Airport* destination,
-                std::string callsign, int frame_length)
+
+Traffic::Traffic(double longitude, double lattitude,
+                 const double speed, const double rate_of_climb,
+                 const double altitude, Airport *destination,
+                 std::string callsign, int frame_length)
 {
     this->position = arma::vec({longitude, lattitude, altitude});
     this->speed = speed;
@@ -17,16 +18,9 @@ Traffic::Traffic(double longitude, double lattitude,
 }
 
 // let's make 1 step 1 second.
-void Traffic::step(Weather* weather)
+
+void Traffic::verify_constraints()
 {
-
-    this->position[2]+=this->rate_of_climb;
-    this->position[0]+=sin(this->heading*(PI/180))*1/pow(60,3)*this->speed;
-    this->position[1]+=cos(this->heading*(PI/180))*1/pow(60,3)*this->speed;
-    this->speed = this->target_speed;
-
-    this->heading +=this->rate_of_turn;
-
     if (this->heading > 360){ // move to func
         this->heading = 0;
     }
@@ -34,6 +28,23 @@ void Traffic::step(Weather* weather)
         this->heading = 360;
     }
 
+    if (this->speed<140){
+        this->speed = 140;
+    }
+    else if (this->speed>350){
+        this->speed = 350;
+    }
+    
+    if (this->position[2]<250){
+        this->position[2]= 250;
+    }
+    else if (this->position[2]>41000){
+        this->position[2] = 41000;
+    }
+}
+
+
+void Traffic::adjust_params(){
     double det = (this->heading)-(this->target_heading);
     if (det>180|| det<-180){
         det = -det;
@@ -50,4 +61,25 @@ void Traffic::step(Weather* weather)
     }else{
         this->rate_of_climb = ((det < 0 ) - (det > 0 )) *20;
     }
+    
+    det = this->speed - this->target_speed;
+    if (abs(det) < 1){
+        this->rate_of_speed = det;
+    }else{
+        this->rate_of_speed = ((det < 0 ) - (det > 0 ));
+    }
+
+}
+
+void Traffic::step(Weather* weather)
+{
+
+    this->position[2]+=this->rate_of_climb;
+    this->heading +=this->rate_of_turn;
+
+    this->position[0]+=sin(this->heading*(PI/180))*1/pow(60,3)*this->speed;
+    this->position[1]+=cos(this->heading*(PI/180))*1/pow(60,3)*this->speed;
+    this->speed += this->rate_of_speed;
+    adjust_params();
+    verify_constraints();
 }
