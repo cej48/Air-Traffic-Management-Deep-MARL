@@ -246,6 +246,23 @@ void ATMInterface::draw_airports()
         rectangle.setPosition(airport->position[0]*this->scale_factor, airport->position[1]*-1*this->scale_factor);
         window->draw(text);
         window->draw(rectangle);    
+        
+        float radius = 0.0833;
+        for (int i=0; i<3; i++){
+            sf::CircleShape shape(radius*this->scale_factor);
+            shape.setPosition((airport->position[0]-radius)*this->scale_factor, (airport->position[1]*-1-radius)*this->scale_factor);
+            shape.setOutlineThickness(10);
+            shape.setFillColor(this->transparent);
+            shape.setOutlineColor(this->radar_grey);
+            window->draw(shape);
+            radius+=0.0833;
+        } 
+
+        sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
+        rwhdg.setPosition((airport->position[0])*this->scale_factor, (airport->position[1]*-1)*this->scale_factor);
+        rwhdg.rotate(airport->runway_heading);
+        rwhdg.setFillColor(this->radar_blue);
+        window->draw(rwhdg);
     }
 }
 

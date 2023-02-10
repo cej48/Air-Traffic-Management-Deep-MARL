@@ -14,9 +14,6 @@ int main(){
     while(running) 
     {
         count++;
-        if (count==1e9){
-            std::cout<<"fast"<<'\n';
-        }
         running = simulator.step();
     }
 
