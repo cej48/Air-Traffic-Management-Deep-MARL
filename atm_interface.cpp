@@ -3,6 +3,9 @@
 #include <math.h>
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
+#include <math.h>
+
+#define PI 3.14159265
 
 ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration)
 {
@@ -237,6 +240,15 @@ void ATMInterface::draw_airports()
 {
     for (int i = 0; i < airports->size(); i++) {
         Airport* airport = airports->at(i);
+
+        sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
+        rwhdg.rotate(airport->runway_heading);
+        rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading)*PI/180))*this->scale_factor+50, 
+                          (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading)*PI/180))*this->scale_factor+50);
+        rwhdg.setFillColor(this->radar_blue);
+        window->draw(rwhdg);
+
+
         sf::Text text(airport->code, font, 240);
         text.setFillColor(radar_green);
         text.setPosition(airport->position[0]*this->scale_factor-500, airport->position[1]*-1*this->scale_factor-300);
@@ -256,13 +268,7 @@ void ATMInterface::draw_airports()
             shape.setOutlineColor(this->radar_grey);
             window->draw(shape);
             radius+=0.0833;
-        } 
-
-        sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
-        rwhdg.setPosition((airport->position[0])*this->scale_factor, (airport->position[1]*-1)*this->scale_factor);
-        rwhdg.rotate(airport->runway_heading);
-        rwhdg.setFillColor(this->radar_blue);
-        window->draw(rwhdg);
+        }
     }
 }
 
