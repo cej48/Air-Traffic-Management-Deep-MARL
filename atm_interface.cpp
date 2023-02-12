@@ -3,12 +3,18 @@
 #include <math.h>
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
+#include <math.h>
 
-ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor)
+#define PI 3.14159265
+
+ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration)
 {
     this->scale_factor = scale_factor;
     this->airports = airports;
     this->traffic = traffic;
+
+    this->acceleration = acceleration;
+
     this->view_width = width/2;
     this->view_height = height/2;
 
@@ -154,7 +160,15 @@ bool ATMInterface::input_handler()
                         {
                             window->close();
                             return 0;
-                        }
+                        }break;
+                        case (sf::Keyboard::Right):
+                        {
+                            *this->acceleration-=1;
+                        }break;
+                        case (sf::Keyboard::Left):{
+                            *this->acceleration+=1;
+                            std::cout<<*this->acceleration<<'\n';
+                        }break;
                     }
                 }
             } break;
@@ -202,6 +216,15 @@ bool ATMInterface::input_handler()
     return 1;
 }
 
+std::string ATMInterface::alt_to_string(double value)
+{
+    if (value<10000){
+        return std::to_string((int)value);
+    }
+
+    return "FL"+std::to_string((int)value/100);
+}
+
 void ATMInterface::draw_gui(std::string in)
 {   
     window->setView(this->gui_view);
@@ -217,6 +240,15 @@ void ATMInterface::draw_airports()
 {
     for (int i = 0; i < airports->size(); i++) {
         Airport* airport = airports->at(i);
+
+        sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
+        rwhdg.rotate(airport->runway_heading);
+        rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading)*PI/180))*this->scale_factor+50, 
+                          (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading)*PI/180))*this->scale_factor+50);
+        rwhdg.setFillColor(this->radar_blue);
+        window->draw(rwhdg);
+
+
         sf::Text text(airport->code, font, 240);
         text.setFillColor(radar_green);
         text.setPosition(airport->position[0]*this->scale_factor-500, airport->position[1]*-1*this->scale_factor-300);
@@ -226,6 +258,17 @@ void ATMInterface::draw_airports()
         rectangle.setPosition(airport->position[0]*this->scale_factor, airport->position[1]*-1*this->scale_factor);
         window->draw(text);
         window->draw(rectangle);    
+        
+        float radius = 0.0833;
+        for (int i=0; i<3; i++){
+            sf::CircleShape shape(radius*this->scale_factor);
+            shape.setPosition((airport->position[0]-radius)*this->scale_factor, (airport->position[1]*-1-radius)*this->scale_factor);
+            shape.setOutlineThickness(10);
+            shape.setFillColor(this->transparent);
+            shape.setOutlineColor(this->radar_grey);
+            window->draw(shape);
+            radius+=0.0833;
+        }
     }
 }
 
@@ -259,7 +302,7 @@ void ATMInterface::draw_traffic()
         window->draw(text);
 
         text.setPosition(traffic_draw->position[0]*this->scale_factor-500, traffic_draw->position[1]*-1*this->scale_factor+400);
-        text.setString(std::to_string(int(traffic_draw->position[2])));
+        text.setString(alt_to_string(traffic_draw->position[2]));
         window->draw(text);
 
         sf::RectangleShape rectangle(sf::Vector2f(100, 100));

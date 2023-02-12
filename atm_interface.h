@@ -8,6 +8,9 @@ class ATMInterface{
     sf::Color radar_white = sf::Color(255,255,255);
     sf::Color radar_yellow = sf::Color(255,255,0);
     sf::Color radar_red = sf::Color(255, 0, 0);
+    sf::Color radar_grey = sf::Color(125,125,125);
+    sf::Color transparent = sf::Color(0,0,0,0);
+    sf::Color radar_blue = sf::Color(0,0,255);
 
     sf::Vector2f mouse_previous = sf::Vector2f(0,0);
     sf::Vector2f center_fix;
@@ -25,6 +28,8 @@ class ATMInterface{
     std::vector<Traffic*> *traffic;
     sf::Font font;
 
+    int *acceleration;
+
     std::string selector_code;
     bool selector_bool=false;
     std::string input_text = "";
@@ -41,9 +46,10 @@ class ATMInterface{
     void draw_gui(std::string text);
     void action_parser(std::string text);
 
+    std::string alt_to_string(double value);
     // std::string alt_display();
 
     public:
-        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor);
+        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration);
         bool step();
 };

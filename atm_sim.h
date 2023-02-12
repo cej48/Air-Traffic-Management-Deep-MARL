@@ -16,6 +16,7 @@ class ATMSim{
 
     float frame_length;
     int count =0;
+    int acceleration;
 
     int framerate;
 

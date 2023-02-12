@@ -10,6 +10,8 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     this->framerate = framerate;
     this->frame_length = frame_length;
 
+    this->acceleration=10; // adjusted by interface if req'd
+
     std::ifstream file (environment_meta);
     json boundaries_json = json::parse(file);
     file.close();
@@ -33,7 +35,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     traffic.push_back(new Traffic(0.f, 52.f, 150.f, 0.f, 1000.f, airports[0], "BAW35P", this->frame_length));
     this->render = render;
     if (render){
-        interface = new ATMInterface(&airports, &traffic, 10000);
+        interface = new ATMInterface(&airports, &traffic, 10000, &acceleration);
     }
 
 }
@@ -67,11 +69,11 @@ void ATMSim::detect_closure_infringement()
 void ATMSim::detect_traffic_arrival()
 {
     for (int i=0; i<this->traffic.size(); i++){
-        if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833){
+        if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
+            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
             this->traffic.erase(this->traffic.begin()+i);
         }
     }
-    std::cout<<this->traffic.size()<<'\n';
 }
 
 // TODO: implement weather at position.
@@ -87,7 +89,11 @@ bool ATMSim::step()
     if (this->render){
         return_val = interface->step();
     }
-    if (count%60){
+
+    if (this->acceleration<1){
+        this->acceleration=1;
+    }
+    if (count%acceleration){
         return return_val;
     }
     for (auto item : traffic){
