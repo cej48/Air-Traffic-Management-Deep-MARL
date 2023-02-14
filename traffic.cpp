@@ -75,14 +75,12 @@ void Traffic::step(Weather* weather)
 {
 
     this->position[2]+=this->rate_of_climb;
-    // this->heading +=this->rate_of_turn;
+    this->heading +=this->rate_of_turn;
 
     this->position[0]+=sin(this->heading.value*(PI/180))*1/pow(60,3)*this->speed;
     this->position[1]+=cos(this->heading.value*(PI/180))*1/pow(60,3)*this->speed;
     this->speed += this->rate_of_speed;
-    this->heading-=1.f;
-
-    std::cout<<this->heading.value<<'\n';
+    // this->heading-=1.f;
     adjust_params();
     verify_constraints();
 }

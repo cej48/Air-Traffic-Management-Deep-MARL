@@ -1,12 +1,13 @@
 #pragma once
 #include <string>
 #include <armadillo>
+#include "heading.h"
 
 class Airport{
     public:
         // Public to avoid excessive dataclass getter/setter
         arma::vec3 position;
-        double runway_heading;
+        Heading runway_heading;
         std::string code;
 
         Airport(){

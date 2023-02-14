@@ -83,8 +83,12 @@ double ATMSim::calculate_angle(arma::vec3 p1, arma::vec3 p2){
 void ATMSim::detect_traffic_arrival()
 {
     for (int i=0; i<this->traffic.size(); i++){
-        
-        // if (!this->heading
+        Heading min(this->traffic[i]->heading-30);
+        Heading max(this->traffic[i]->heading+30);
+
+        if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
+            return;
+        }
 
         if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){

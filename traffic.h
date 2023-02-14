@@ -5,7 +5,7 @@
 #include "weather.h"
 #include <string>
 #include "airport.h"
-#include "heading.h"
+// #include "heading.h"
 
 class Traffic {
 
@@ -26,7 +26,7 @@ public:
     double rate_of_turn;
     double rate_of_speed;
 
-    double target_heading;
+    Heading target_heading;
     double target_speed;
     double target_altitude;
 

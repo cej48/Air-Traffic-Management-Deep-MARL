@@ -242,9 +242,9 @@ void ATMInterface::draw_airports()
         Airport* airport = airports->at(i);
 
         sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
-        rwhdg.rotate(airport->runway_heading);
-        rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading)*PI/180))*this->scale_factor+50, 
-                          (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading)*PI/180))*this->scale_factor+50);
+        rwhdg.rotate(airport->runway_heading.value);
+        rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading.value)*PI/180))*this->scale_factor+50, 
+                          (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading.value)*PI/180))*this->scale_factor+50);
         rwhdg.setFillColor(this->radar_blue);
         window->draw(rwhdg);
 
