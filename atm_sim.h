@@ -30,14 +30,13 @@ class ATMSim{
     float calculate_distance(arma::vec3 a, arma::vec3 b);
 
     void detect_closure_infringement();
+    double calculate_angle(arma::vec3 p1, arma::vec3 p2);
     void detect_traffic_arrival();
 
-
-    public:
-
-        ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
-        int traffic_maximum;
-        bool step();
+public:
+    ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
+    int traffic_maximum;
+    bool step();
 
 
     

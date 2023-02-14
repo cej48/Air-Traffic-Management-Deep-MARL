@@ -5,6 +5,7 @@
 #include "weather.h"
 #include <string>
 #include "airport.h"
+#include "heading.h"
 
 class Traffic {
 
@@ -15,7 +16,7 @@ class Traffic {
 public:
     arma::vec3 position;
     double speed;
-    double heading;
+    Heading heading;
     Airport* destination; 
     std:: string callsign;
 

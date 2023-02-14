@@ -4,6 +4,8 @@
 
 using json = nlohmann::json;
 
+#define PI 3.14159265
+
 
 ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length)
 {
@@ -66,9 +68,24 @@ void ATMSim::detect_closure_infringement()
     }
 }
 
+double ATMSim::calculate_angle(arma::vec3 p1, arma::vec3 p2){
+
+    double x = p1[0]-p2[0];
+    double y = p1[1]-p2[1];
+
+    return PI - atan(y/x);
+}
+
+// bool runway_heading_match(double hdg, double rwyhdg){
+//     if (rwyhdg)
+// }
+
 void ATMSim::detect_traffic_arrival()
 {
     for (int i=0; i<this->traffic.size(); i++){
+        
+        // if (!this->heading
+
         if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
             this->traffic.erase(this->traffic.begin()+i);

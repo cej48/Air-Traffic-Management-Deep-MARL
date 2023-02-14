@@ -21,12 +21,12 @@ Traffic::Traffic(double longitude, double lattitude,
 
 void Traffic::verify_constraints()
 {
-    if (this->heading > 360){ // move to func
-        this->heading = 0;
-    }
-    else if (this->heading < 0){
-        this->heading = 360;
-    }
+    // if (this->heading > 360){ // move to func
+    //     this->heading = 0;
+    // }
+    // else if (this->heading < 0){
+    //     this->heading = 360;
+    // }
 
     if (this->speed<140){
         this->speed = 140;
@@ -75,11 +75,14 @@ void Traffic::step(Weather* weather)
 {
 
     this->position[2]+=this->rate_of_climb;
-    this->heading +=this->rate_of_turn;
+    // this->heading +=this->rate_of_turn;
 
-    this->position[0]+=sin(this->heading*(PI/180))*1/pow(60,3)*this->speed;
-    this->position[1]+=cos(this->heading*(PI/180))*1/pow(60,3)*this->speed;
+    this->position[0]+=sin(this->heading.value*(PI/180))*1/pow(60,3)*this->speed;
+    this->position[1]+=cos(this->heading.value*(PI/180))*1/pow(60,3)*this->speed;
     this->speed += this->rate_of_speed;
+    this->heading-=1.f;
+
+    std::cout<<this->heading.value<<'\n';
     adjust_params();
     verify_constraints();
 }
