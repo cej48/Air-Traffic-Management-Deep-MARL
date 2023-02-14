@@ -164,11 +164,12 @@ bool ATMInterface::input_handler()
                         case (sf::Keyboard::Right):
                         {
                             *this->acceleration-=1;
-                        }break;
+                        }
                         case (sf::Keyboard::Left):{
                             *this->acceleration+=1;
                             std::cout<<*this->acceleration<<'\n';
-                        }break;
+                        }
+                        break;
                     }
                 }
             } break;

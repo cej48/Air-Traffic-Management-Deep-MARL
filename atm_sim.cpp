@@ -86,6 +86,9 @@ void ATMSim::detect_traffic_arrival()
         Heading min(this->traffic[i]->heading-30);
         Heading max(this->traffic[i]->heading+30);
 
+
+        std::cout<<!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)<<'\n';
+
         if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
             return;
         }
@@ -109,10 +112,6 @@ bool ATMSim::step()
     
     if (this->render){
         return_val = interface->step();
-    }
-
-    if (this->acceleration<1){
-        this->acceleration=1;
     }
     if (count%acceleration){
         return return_val;
