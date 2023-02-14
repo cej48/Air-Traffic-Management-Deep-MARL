@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "airport.h"
 #include "traffic.h"
+#include "rint.h"
 
 class ATMInterface{
 
@@ -28,7 +29,7 @@ class ATMInterface{
     std::vector<Traffic*> *traffic;
     sf::Font font;
 
-    int *acceleration;
+    RangeInt *acceleration;
 
     std::string selector_code;
     bool selector_bool=false;
@@ -50,6 +51,6 @@ class ATMInterface{
     // std::string alt_display();
 
     public:
-        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration);
+        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration);
         bool step();
 };

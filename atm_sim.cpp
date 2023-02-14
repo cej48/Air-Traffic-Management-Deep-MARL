@@ -12,7 +12,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     this->framerate = framerate;
     this->frame_length = frame_length;
 
-    this->acceleration=10; // adjusted by interface if req'd
+    this->acceleration.value=10; // adjusted by interface if req'd
 
     std::ifstream file (environment_meta);
     json boundaries_json = json::parse(file);
@@ -113,7 +113,7 @@ bool ATMSim::step()
     if (this->render){
         return_val = interface->step();
     }
-    if (count%acceleration){
+    if (count%acceleration.value){
         return return_val;
     }
     for (auto item : traffic){

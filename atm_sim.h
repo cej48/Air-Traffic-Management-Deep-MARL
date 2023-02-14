@@ -6,6 +6,7 @@
 #include <armadillo>
 #include "airport.h"
 #include "atm_interface.h"
+#include "rint.h"
 
 class ATMSim{
 
@@ -16,7 +17,8 @@ class ATMSim{
 
     float frame_length;
     int count =0;
-    int acceleration;
+
+    RangeInt acceleration(60, 1, 60); // rip
 
     int framerate;
 

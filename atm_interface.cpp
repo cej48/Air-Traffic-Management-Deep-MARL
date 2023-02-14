@@ -7,7 +7,7 @@
 
 #define PI 3.14159265
 
-ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration)
+ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration)
 {
     this->scale_factor = scale_factor;
     this->airports = airports;
@@ -167,7 +167,7 @@ bool ATMInterface::input_handler()
                         }
                         case (sf::Keyboard::Left):{
                             *this->acceleration+=1;
-                            std::cout<<*this->acceleration<<'\n';
+                            // std::cout<<*this->acceleration->value<<'\n';
                         }
                         break;
                     }
