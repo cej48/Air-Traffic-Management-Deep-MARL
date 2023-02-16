@@ -76,18 +76,11 @@ double ATMSim::calculate_angle(arma::vec3 p1, arma::vec3 p2){
     return PI - atan(y/x);
 }
 
-// bool runway_heading_match(double hdg, double rwyhdg){
-//     if (rwyhdg)
-// }
-
 void ATMSim::detect_traffic_arrival()
 {
     for (int i=0; i<this->traffic.size(); i++){
         Heading min(this->traffic[i]->heading-30);
         Heading max(this->traffic[i]->heading+30);
-
-
-        std::cout<<!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)<<'\n';
 
         if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
             return;

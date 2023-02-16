@@ -154,24 +154,22 @@ bool ATMInterface::input_handler()
             } break;
 
             case (sf::Event::KeyPressed):{
-                if (!this->selector_bool){
                     switch (event.key.code){
                         case (sf::Keyboard::Escape):
                         {
-                            window->close();
-                            return 0;
+                            if (!this->selector_bool){
+                                window->close();
+                                return 0;
+                            }
                         }break;
                         case (sf::Keyboard::Right):
                         {
                             *this->acceleration-=1;
-                        }
+                        }break;
                         case (sf::Keyboard::Left):{
                             *this->acceleration+=1;
-                            // std::cout<<*this->acceleration->value<<'\n';
-                        }
-                        break;
+                        }break;
                     }
-                }
             } break;
 
             case (sf::Event::MouseWheelScrolled):{
