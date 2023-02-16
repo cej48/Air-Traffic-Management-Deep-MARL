@@ -1,3 +1,4 @@
+#pragma once
 #include <limits>
 
 // custom int that remain within range.

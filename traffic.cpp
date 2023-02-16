@@ -1,5 +1,7 @@
 #include "traffic.h"
 #include <math.h>
+#include "utils.h"
+
 
 #define PI 3.14159265
 
@@ -15,6 +17,12 @@ Traffic::Traffic(double longitude, double lattitude,
     this->destination = destination;
     this->callsign = callsign;
     this->frame_length = frame_length;
+
+    this->heading = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
+
+    this->target_speed=speed;
+    this->target_heading=heading;
+    this->target_altitude=altitude;
 }
 
 void Traffic::verify_constraints()

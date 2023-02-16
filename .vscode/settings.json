@@ -2,14 +2,6 @@
     "files.associations": {
         "iostream": "cpp",
         "*.tcc": "cpp",
-        "tuple": "cpp",
-        "optional": "cpp",
-        "ratio": "cpp",
-        "system_error": "cpp",
-        "array": "cpp",
-        "functional": "cpp",
-        "type_traits": "cpp",
-        "utility": "cpp",
-        "variant": "cpp"
+        "tuple": "cpp"
     }
 }
