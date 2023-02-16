@@ -1,8 +1,12 @@
 #include "atm_sim.h"
 #include "traffic.h"
+#include "utils.h"
+#include <random>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
+
+#define PI 3.14159265
 
 
 ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length)
@@ -10,7 +14,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     this->framerate = framerate;
     this->frame_length = frame_length;
 
-    this->acceleration=10; // adjusted by interface if req'd
+    this->acceleration.value=10; // adjusted by interface if req'd
 
     std::ifstream file (environment_meta);
     json boundaries_json = json::parse(file);
@@ -41,11 +45,6 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
 }
 
 
-float ATMSim::calculate_distance(arma::vec3 a, arma::vec3 b){
-    return sqrt(pow(a[0] - b[0],2)
-            +   pow(a[1] - b[1],2));
-}
-
 void ATMSim::detect_closure_infringement()
 {
     int j = this->traffic.size()-1;
@@ -54,8 +53,7 @@ void ATMSim::detect_closure_infringement()
     }
     for (int i = 0; i < this->traffic.size(); i++){
         for (int k = j; k>0; k--){
-
-            float distance_xy = this->calculate_distance(this->traffic.at(i)->position, this->traffic.at(i+k)->position);
+            float distance_xy = Utils::calculate_distance(this->traffic.at(i)->position, this->traffic.at(i+k)->position);
             float distance_z = abs(this->traffic.at(i)->position[2] - this->traffic.at(i+k)->position[2]);
             if (distance_xy<0.0833 && distance_z<900){ // 5 miles
                 this->traffic.at(i)->infringement = true;
@@ -69,7 +67,15 @@ void ATMSim::detect_closure_infringement()
 void ATMSim::detect_traffic_arrival()
 {
     for (int i=0; i<this->traffic.size(); i++){
-        if (this->calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
+        Heading min(this->traffic[i]->heading-30);
+        Heading max(this->traffic[i]->heading+30);
+
+        // first check traffic is pointing in the correct direction.
+        if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
+            return;
+        }
+
+        if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
             this->traffic.erase(this->traffic.begin()+i);
         }
@@ -77,6 +83,47 @@ void ATMSim::detect_traffic_arrival()
 }
 
 // TODO: implement weather at position.
+void ATMSim::spawn_aircraft()
+{
+
+    int value = 10+rand()%89;
+    int destination = rand()%this->airports.size();
+    int altitude = 20000+rand()%20000;
+
+    float y_length = this->lattitude_max-lattitude_min;
+    float x_length = this->longitude_max-longitude_min;
+
+    float latti;
+    float longi;
+    switch(rand()%4){
+    // switch(0){
+        //TOP
+        case(0):{
+            latti = this->lattitude_max;
+            longi = this->longitude_min + float((rand()%int(x_length*1e7))/1e7);
+        } break;
+        //LEFT
+        case(1):{
+            longi = this->longitude_min;
+            latti = this->lattitude_min + float((rand()%int(y_length*1e7))/1e7);
+        } break;
+        //RIGHT
+        case(2):{
+            longi = this->longitude_max;
+            latti = this->lattitude_min + float((rand()%int(y_length*1e7))/1e7);
+        } break;
+        //BOTTOM
+        case(3):{
+            latti = this->lattitude_min;
+            longi = this->longitude_min + float((rand()%int(x_length*1e7))/1e7);
+        } break;
+    }
+
+    traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length));
+}
+
+
+
 bool ATMSim::step()
 {   
     bool return_val = 1;
@@ -89,15 +136,15 @@ bool ATMSim::step()
     if (this->render){
         return_val = interface->step();
     }
-
-    if (this->acceleration<1){
-        this->acceleration=1;
-    }
-    if (count%acceleration){
+    if (count%acceleration.value){ // late guard
+        std::cout<<acceleration.value<<'\n';
         return return_val;
     }
     for (auto item : traffic){
         item->step(&weather);
+    }
+    if (this->traffic.size()<this->max_traffic_count){
+        this->spawn_aircraft();
     }
     return return_val;
 }

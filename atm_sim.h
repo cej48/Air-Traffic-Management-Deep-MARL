@@ -16,7 +16,9 @@ class ATMSim{
 
     float frame_length;
     int count =0;
-    int acceleration;
+    int max_traffic_count = 50;
+
+    RangeInt acceleration = RangeInt(60, 1, 60); // rip
 
     int framerate;
 
@@ -27,17 +29,16 @@ class ATMSim{
     bool render;
     ATMInterface* interface;
 
-    float calculate_distance(arma::vec3 a, arma::vec3 b);
-
     void detect_closure_infringement();
+    double calculate_angle(arma::vec3 p1, arma::vec3 p2);
     void detect_traffic_arrival();
 
+    void spawn_aircraft();
 
-    public:
-
-        ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
-        int traffic_maximum;
-        bool step();
+public:
+    ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
+    int traffic_maximum;
+    bool step();
 
 
     

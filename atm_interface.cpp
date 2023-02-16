@@ -7,7 +7,7 @@
 
 #define PI 3.14159265
 
-ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, int *acceleration)
+ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration)
 {
     this->scale_factor = scale_factor;
     this->airports = airports;
@@ -78,23 +78,16 @@ void ATMInterface::action_parser(std::string text)
         }
 
         for (int w_index = 0; w_index<words.size(); w_index++){ 
-            
+            if (w_index>=words.size()){
+                return;
+                };
             if (words[w_index]=="hdg"){
-                if (w_index>=words.size()){
-                    return;
-                    };
                 traffic->at(i)->target_heading = std::stof(words[w_index+1]);
             }            
             if (words[w_index]=="alt"){
-                if (w_index>=words.size()){
-                    return;
-                    };
                 traffic->at(i)->target_altitude = std::stof(words[w_index+1]);
             }
             if (words[w_index]=="spd"){
-                if (w_index>=words.size()){
-                    return;
-                    };
                 traffic->at(i)->target_speed = std::stof(words[w_index+1]);
             }
         
@@ -154,12 +147,13 @@ bool ATMInterface::input_handler()
             } break;
 
             case (sf::Event::KeyPressed):{
-                if (!this->selector_bool){
                     switch (event.key.code){
                         case (sf::Keyboard::Escape):
                         {
-                            window->close();
-                            return 0;
+                            if (!this->selector_bool){
+                                window->close();
+                                return 0;
+                            }
                         }break;
                         case (sf::Keyboard::Right):
                         {
@@ -167,10 +161,8 @@ bool ATMInterface::input_handler()
                         }break;
                         case (sf::Keyboard::Left):{
                             *this->acceleration+=1;
-                            std::cout<<*this->acceleration<<'\n';
                         }break;
                     }
-                }
             } break;
 
             case (sf::Event::MouseWheelScrolled):{
@@ -218,11 +210,7 @@ bool ATMInterface::input_handler()
 
 std::string ATMInterface::alt_to_string(double value)
 {
-    if (value<10000){
-        return std::to_string((int)value);
-    }
-
-    return "FL"+std::to_string((int)value/100);
+    return (value<10000) ? std::to_string((int)value) : "FL"+std::to_string((int)value/100);
 }
 
 void ATMInterface::draw_gui(std::string in)
@@ -242,9 +230,9 @@ void ATMInterface::draw_airports()
         Airport* airport = airports->at(i);
 
         sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
-        rwhdg.rotate(airport->runway_heading);
-        rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading)*PI/180))*this->scale_factor+50, 
-                          (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading)*PI/180))*this->scale_factor+50);
+        rwhdg.rotate(airport->runway_heading.value);
+        rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading.value)*PI/180))*this->scale_factor+50, 
+                          (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading.value)*PI/180))*this->scale_factor+50);
         rwhdg.setFillColor(this->radar_blue);
         window->draw(rwhdg);
 
@@ -310,7 +298,6 @@ void ATMInterface::draw_traffic()
         rectangle.setPosition(traffic_draw->position[0]*this->scale_factor, traffic_draw->position[1]*-1*this->scale_factor);
 
         window->draw(rectangle);    
-    
         }
         
     }

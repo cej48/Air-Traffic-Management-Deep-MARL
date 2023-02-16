@@ -1,5 +1,7 @@
 #include "traffic.h"
 #include <math.h>
+#include "utils.h"
+
 
 #define PI 3.14159265
 
@@ -15,19 +17,16 @@ Traffic::Traffic(double longitude, double lattitude,
     this->destination = destination;
     this->callsign = callsign;
     this->frame_length = frame_length;
-}
 
-// let's make 1 step 1 second.
+    this->heading = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
+
+    this->target_speed=speed;
+    this->target_heading=heading;
+    this->target_altitude=altitude;
+}
 
 void Traffic::verify_constraints()
 {
-    if (this->heading > 360){ // move to func
-        this->heading = 0;
-    }
-    else if (this->heading < 0){
-        this->heading = 360;
-    }
-
     if (this->speed<140){
         this->speed = 140;
     }
@@ -46,28 +45,15 @@ void Traffic::verify_constraints()
 
 void Traffic::adjust_params(){
     double det = (this->heading)-(this->target_heading);
-    if (det>180|| det<-180){
-        det = -det;
-    }
-    if (abs(det) < 3){
-        this->rate_of_turn = det;
-    }else{
-        this->rate_of_turn = ((det < 0 ) - (det > 0 )) *3;
-    }
+
+    det = (det>180|| det<-180) ? -det : det;
+    this->rate_of_turn = (abs(det)<3) ? det : ((det < 0 ) - (det > 0 )) *3;
 
     det = this->position[2] - this->target_altitude;
-    if (abs(det) < 20){
-        this->rate_of_climb = det;
-    }else{
-        this->rate_of_climb = ((det < 0 ) - (det > 0 )) *20;
-    }
+    this->rate_of_climb = (abs(det) < 20) ? det : ((det < 0 ) - (det > 0 )) *20;
     
     det = this->speed - this->target_speed;
-    if (abs(det) < 1){
-        this->rate_of_speed = det;
-    }else{
-        this->rate_of_speed = ((det < 0 ) - (det > 0 ));
-    }
+    this->rate_of_speed = (abs(det) < 1) ? det : this->rate_of_speed = ((det < 0 ) - (det > 0 ));
 
 }
 
@@ -77,9 +63,10 @@ void Traffic::step(Weather* weather)
     this->position[2]+=this->rate_of_climb;
     this->heading +=this->rate_of_turn;
 
-    this->position[0]+=sin(this->heading*(PI/180))*1/pow(60,3)*this->speed;
-    this->position[1]+=cos(this->heading*(PI/180))*1/pow(60,3)*this->speed;
+    this->position[0]+=sin(this->heading.value*(PI/180))*1/pow(60,3)*this->speed;
+    this->position[1]+=cos(this->heading.value*(PI/180))*1/pow(60,3)*this->speed;
     this->speed += this->rate_of_speed;
+    
     adjust_params();
     verify_constraints();
 }
