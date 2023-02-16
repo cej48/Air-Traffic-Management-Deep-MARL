@@ -1,11 +1,11 @@
 #include "utils.h"
+#include "macro.h"
 
 namespace Utils{
 
     double calculate_angle(arma::vec3 p1, arma::vec3 p2){
         return  p1[1]-p2[1] < 0 ? atan((p1[0]-p2[0])/
                     (p1[1]-p2[1])) 
-                    
                     : PI + atan((p1[0]-p2[0])/
                     (p1[1]-p2[1]));
     }

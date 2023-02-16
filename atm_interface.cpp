@@ -1,6 +1,7 @@
 #include "atm_interface.h"
 #include <SFML/Graphics.hpp>
 #include <math.h>
+#include "macro.h"
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
 #include <math.h>
@@ -229,7 +230,7 @@ void ATMInterface::draw_airports()
     for (int i = 0; i < airports->size(); i++) {
         Airport* airport = airports->at(i);
 
-        sf::RectangleShape rwhdg(sf::Vector2f(15.f, 0.0833*this->scale_factor));
+        sf::RectangleShape rwhdg(sf::Vector2f(15.f, MILE_5*this->scale_factor));
         rwhdg.rotate(airport->runway_heading.value);
         rwhdg.setPosition((airport->position[0] + 0.0416*sin((airport->runway_heading.value)*PI/180))*this->scale_factor+50, 
                           (airport->position[1]*-1 - 0.0416*cos((airport->runway_heading.value)*PI/180))*this->scale_factor+50);
@@ -247,7 +248,7 @@ void ATMInterface::draw_airports()
         window->draw(text);
         window->draw(rectangle);    
         
-        float radius = 0.0833;
+        float radius = MILE_5;
         for (int i=0; i<3; i++){
             sf::CircleShape shape(radius*this->scale_factor);
             shape.setPosition((airport->position[0]-radius)*this->scale_factor, (airport->position[1]*-1-radius)*this->scale_factor);
@@ -255,7 +256,7 @@ void ATMInterface::draw_airports()
             shape.setFillColor(this->transparent);
             shape.setOutlineColor(this->radar_grey);
             window->draw(shape);
-            radius+=0.0833;
+            radius+=MILE_5;
         }
     }
 }

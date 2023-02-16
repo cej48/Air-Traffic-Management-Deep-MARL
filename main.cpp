@@ -3,7 +3,6 @@
 #include <string>
 
 int main(){
-
     std::string environment_boundaries = "environment_boundaries.json";
     std::string airport_data = "airport_data.json";
 
