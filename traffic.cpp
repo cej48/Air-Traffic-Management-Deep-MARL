@@ -17,17 +17,8 @@ Traffic::Traffic(double longitude, double lattitude,
     this->frame_length = frame_length;
 }
 
-// let's make 1 step 1 second.
-
 void Traffic::verify_constraints()
 {
-    // if (this->heading > 360){ // move to func
-    //     this->heading = 0;
-    // }
-    // else if (this->heading < 0){
-    //     this->heading = 360;
-    // }
-
     if (this->speed<140){
         this->speed = 140;
     }
@@ -46,28 +37,15 @@ void Traffic::verify_constraints()
 
 void Traffic::adjust_params(){
     double det = (this->heading)-(this->target_heading);
-    if (det>180|| det<-180){
-        det = -det;
-    }
-    if (abs(det) < 3){
-        this->rate_of_turn = det;
-    }else{
-        this->rate_of_turn = ((det < 0 ) - (det > 0 )) *3;
-    }
+
+    det = (det>180|| det<-180) ? -det : det;
+    this->rate_of_turn = (abs(det)<3) ? det : ((det < 0 ) - (det > 0 )) *3;
 
     det = this->position[2] - this->target_altitude;
-    if (abs(det) < 20){
-        this->rate_of_climb = det;
-    }else{
-        this->rate_of_climb = ((det < 0 ) - (det > 0 )) *20;
-    }
+    this->rate_of_climb = (abs(det) < 20) ? det : ((det < 0 ) - (det > 0 )) *20;
     
     det = this->speed - this->target_speed;
-    if (abs(det) < 1){
-        this->rate_of_speed = det;
-    }else{
-        this->rate_of_speed = ((det < 0 ) - (det > 0 ));
-    }
+    this->rate_of_speed = (abs(det) < 1) ? det : this->rate_of_speed = ((det < 0 ) - (det > 0 ));
 
 }
 

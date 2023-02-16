@@ -78,23 +78,16 @@ void ATMInterface::action_parser(std::string text)
         }
 
         for (int w_index = 0; w_index<words.size(); w_index++){ 
-            
+            if (w_index>=words.size()){
+                return;
+                };
             if (words[w_index]=="hdg"){
-                if (w_index>=words.size()){
-                    return;
-                    };
                 traffic->at(i)->target_heading = std::stof(words[w_index+1]);
             }            
             if (words[w_index]=="alt"){
-                if (w_index>=words.size()){
-                    return;
-                    };
                 traffic->at(i)->target_altitude = std::stof(words[w_index+1]);
             }
             if (words[w_index]=="spd"){
-                if (w_index>=words.size()){
-                    return;
-                    };
                 traffic->at(i)->target_speed = std::stof(words[w_index+1]);
             }
         
@@ -217,11 +210,7 @@ bool ATMInterface::input_handler()
 
 std::string ATMInterface::alt_to_string(double value)
 {
-    if (value<10000){
-        return std::to_string((int)value);
-    }
-
-    return "FL"+std::to_string((int)value/100);
+    return (value<10000) ? std::to_string((int)value) : "FL"+std::to_string((int)value/100);
 }
 
 void ATMInterface::draw_gui(std::string in)
@@ -309,7 +298,6 @@ void ATMInterface::draw_traffic()
         rectangle.setPosition(traffic_draw->position[0]*this->scale_factor, traffic_draw->position[1]*-1*this->scale_factor);
 
         window->draw(rectangle);    
-    
         }
         
     }

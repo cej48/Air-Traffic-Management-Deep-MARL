@@ -56,7 +56,6 @@ void ATMSim::detect_closure_infringement()
     }
     for (int i = 0; i < this->traffic.size(); i++){
         for (int k = j; k>0; k--){
-
             float distance_xy = this->calculate_distance(this->traffic.at(i)->position, this->traffic.at(i+k)->position);
             float distance_z = abs(this->traffic.at(i)->position[2] - this->traffic.at(i+k)->position[2]);
             if (distance_xy<0.0833 && distance_z<900){ // 5 miles
@@ -69,11 +68,8 @@ void ATMSim::detect_closure_infringement()
 }
 
 double ATMSim::calculate_angle(arma::vec3 p1, arma::vec3 p2){
-
-    double x = p1[0]-p2[0];
-    double y = p1[1]-p2[1];
-
-    return PI - atan(y/x);
+    return PI - atan((p1[0]-p2[0])/
+                     (p1[1]-p2[1]));
 }
 
 void ATMSim::detect_traffic_arrival()
@@ -82,6 +78,7 @@ void ATMSim::detect_traffic_arrival()
         Heading min(this->traffic[i]->heading-30);
         Heading max(this->traffic[i]->heading+30);
 
+        // first check traffic is pointing in the correct direction.
         if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
             return;
         }
@@ -106,7 +103,7 @@ bool ATMSim::step()
     if (this->render){
         return_val = interface->step();
     }
-    if (count%acceleration.value){
+    if (count%acceleration.value){ // late guard
         return return_val;
     }
     for (auto item : traffic){
