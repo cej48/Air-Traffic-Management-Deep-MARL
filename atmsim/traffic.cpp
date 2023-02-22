@@ -1,9 +1,7 @@
 #include "traffic.h"
+#include "macro.h"
 #include <math.h>
 #include "utils.h"
-
-
-#define PI 3.14159265
 
 
 Traffic::Traffic(double longitude, double lattitude,
@@ -11,7 +9,7 @@ Traffic::Traffic(double longitude, double lattitude,
                  const double altitude, Airport *destination,
                  std::string callsign, int frame_length)
 {
-    this->position = arma::vec({longitude, lattitude, altitude});
+    this->position = Eigen::Vector3d(longitude, lattitude, altitude);
     this->speed = speed;
     this->rate_of_climb = rate_of_climb;
     this->destination = destination;
@@ -35,7 +33,7 @@ void Traffic::verify_constraints()
     }
     
     if (this->position[2]<250){
-        this->position[2]= 250;
+        this->position[2] = 250;
     }
     else if (this->position[2]>41000){
         this->position[2] = 41000;

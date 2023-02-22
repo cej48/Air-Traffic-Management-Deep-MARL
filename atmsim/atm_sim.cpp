@@ -1,3 +1,4 @@
+#include "macro.h"
 #include "atm_sim.h"
 #include "traffic.h"
 #include "utils.h"
@@ -5,8 +6,6 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-
-#define PI 3.14159265
 
 
 ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length)
@@ -16,7 +15,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
 
     this->acceleration.value=10; // adjusted by interface if req'd
 
-    std::ifstream file (environment_meta);
+    std::ifstream file(environment_meta);
     json boundaries_json = json::parse(file);
     file.close();
     lattitude_min = boundaries_json["lattitude_min"];
@@ -31,12 +30,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
         airports.push_back(new Airport(airport.value()["lattitude"],airport.value()["longitude"], 
                                    airport.value()["heading"], airport.key()));
     }
-
     environment = new Atmosphere(100,100,10);
-
-    traffic.push_back(new Traffic(0.f, 51.f, 150.f, 0.f, 1000.f, airports[0], "BAW32P", this->frame_length));
-    traffic.push_back(new Traffic(0.f, 52.f, 150.f, 0.f, 1000.f, airports[0], "BAW34P", this->frame_length));
-    traffic.push_back(new Traffic(0.f, 52.f, 150.f, 0.f, 1000.f, airports[0], "BAW35P", this->frame_length));
     this->render = render;
     if (render){
         interface = new ATMInterface(&airports, &traffic, 10000, &acceleration);
@@ -55,7 +49,7 @@ void ATMSim::detect_closure_infringement()
         for (int k = j; k>0; k--){
             float distance_xy = Utils::calculate_distance(this->traffic.at(i)->position, this->traffic.at(i+k)->position);
             float distance_z = abs(this->traffic.at(i)->position[2] - this->traffic.at(i+k)->position[2]);
-            if (distance_xy<0.0833 && distance_z<900){ // 5 miles
+            if (distance_xy<MILE_5 && distance_z<900){ // 5 miles
                 this->traffic.at(i)->infringement = true;
                 this->traffic.at(i+k)->infringement = true;
             }        
@@ -75,7 +69,7 @@ void ATMSim::detect_traffic_arrival()
             return;
         }
 
-        if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 0.0833 
+        if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
             this->traffic.erase(this->traffic.begin()+i);
         }
@@ -88,7 +82,7 @@ void ATMSim::spawn_aircraft()
 
     int value = 10+rand()%89;
     int destination = rand()%this->airports.size();
-    int altitude = 20000+rand()%20000;
+    int altitude = 20000+(rand()%20)*1000;
 
     float y_length = this->lattitude_max-lattitude_min;
     float x_length = this->longitude_max-longitude_min;
@@ -137,7 +131,6 @@ bool ATMSim::step()
         return_val = interface->step();
     }
     if (count%acceleration.value){ // late guard
-        std::cout<<acceleration.value<<'\n';
         return return_val;
     }
     for (auto item : traffic){
