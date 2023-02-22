@@ -1,0 +1,27 @@
+{
+    "EGKK": 
+        {"lattitude": 51.150961,
+          "longitude": -0.177355,
+        "heading": 79},
+    "EGLL": 
+        {"lattitude": 51.471463,
+          "longitude": -0.454469,
+          "heading": 80},
+    "EGLC": 
+          {"lattitude": 51.505236,
+            "longitude": 0.054256,
+            "heading": 90},
+    "EGGW": 
+            {"lattitude": 51.874640,
+              "longitude": -0.368425,
+              "heading": 70},
+    "EGSS": 
+            {"lattitude": 51.884445,
+              "longitude": 0.234119,
+              "heading": 40},
+    "EGMC": 
+            {"lattitude": 51.569800,
+              "longitude": 0.691855,
+              "heading": 40}
+
+}
