@@ -1,18 +1,18 @@
 #pragma once
 #include <string>
-#include <armadillo>
+#include <eigen3/Eigen/Dense>
 #include "heading.h"
 
 class Airport{
     public:
         // Public to avoid excessive dataclass getter/setter
-        arma::vec3 position;
+        Eigen::Vector3d position;
         Heading runway_heading;
         std::string code;
 
         Airport(){
 
-            arma::vec3 position;
+            Eigen::Vector3d position;
             double runway_heading = 0;
             this->code = "";
         }

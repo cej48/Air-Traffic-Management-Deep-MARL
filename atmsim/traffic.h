@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <armadillo>
+#include <eigen3/Eigen/Dense>
 #include "weather.h"
 #include <string>
 #include "airport.h"
@@ -14,7 +14,7 @@ class Traffic {
     void adjust_params();
 
 public:
-    arma::vec3 position;
+    Eigen::Vector3d position;
     double speed;
     Heading heading;
     Airport* destination; 

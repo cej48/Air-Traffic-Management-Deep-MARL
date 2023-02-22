@@ -6,8 +6,6 @@
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
 #include <math.h>
 
-#define PI 3.14159265
-
 ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration)
 {
     this->scale_factor = scale_factor;

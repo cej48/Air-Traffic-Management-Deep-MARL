@@ -15,7 +15,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
 
     this->acceleration.value=10; // adjusted by interface if req'd
 
-    std::ifstream file (environment_meta);
+    std::ifstream file(environment_meta);
     json boundaries_json = json::parse(file);
     file.close();
     lattitude_min = boundaries_json["lattitude_min"];

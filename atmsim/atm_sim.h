@@ -1,9 +1,10 @@
 #pragma once
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include "traffic.h"
 #include "atmosphere.h"
-#include <armadillo>
+#include <eigen3/Eigen/Dense>
 #include "airport.h"
 #include "atm_interface.h"
 
@@ -30,7 +31,7 @@ class ATMSim{
     ATMInterface* interface;
 
     void detect_closure_infringement();
-    double calculate_angle(arma::vec3 p1, arma::vec3 p2);
+    double calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
     void detect_traffic_arrival();
 
     void spawn_aircraft();
