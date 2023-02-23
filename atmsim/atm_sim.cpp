@@ -35,6 +35,9 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     if (render){
         interface = new ATMInterface(&airports, &traffic, 10000, &acceleration);
     }
+    while (this->traffic.size()<this->max_traffic_count){
+        this->spawn_aircraft();
+    }
 
 }
 
@@ -77,6 +80,19 @@ void ATMSim::detect_traffic_arrival()
 }
 
 // TODO: implement weather at position.
+
+void ATMSim::verify_boundary_constraints(){
+    for (unsigned int i=0; i<this->traffic.size(); i++){
+        if (this->lattitude_min > this->traffic[i]->position[1] 
+        || this->lattitude_max < this->traffic[i]->position[1]
+        || this->longitude_min > this->traffic[i]->position[0]
+        || this->longitude_max < this->traffic[i]->position[0])
+        {
+            this->traffic.erase(this->traffic.begin()+i);
+        }
+    }
+}
+
 void ATMSim::spawn_aircraft()
 {
 
@@ -120,12 +136,14 @@ void ATMSim::spawn_aircraft()
 
 bool ATMSim::step()
 {   
+
     bool return_val = 1;
     Weather weather = Weather(1,2,3);
     count++;
     
     this->detect_closure_infringement();
     this->detect_traffic_arrival();
+    this->verify_boundary_constraints();
     
     if (this->render){
         return_val = interface->step();
@@ -136,8 +154,6 @@ bool ATMSim::step()
     for (auto item : traffic){
         item->step(&weather);
     }
-    if (this->traffic.size()<this->max_traffic_count){
-        this->spawn_aircraft();
-    }
+
     return return_val;
 }

@@ -30,6 +30,8 @@ public:
     double target_speed;
     double target_altitude;
 
+    double reward;
+
     int frame_length;
 
     Traffic(const double longitude, const double lattitude, 
