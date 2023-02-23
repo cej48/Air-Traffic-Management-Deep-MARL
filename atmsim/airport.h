@@ -13,7 +13,7 @@ class Airport{
         Airport(){
 
             Eigen::Vector3d position;
-            double runway_heading = 0;
+            Heading runway_heading(0);
             this->code = "";
         }
         Airport(double lattitude, double longitude, double runway_heading, std::string code){

@@ -36,7 +36,7 @@ float get_distance_vec2(sf::Vector2f a, sf::Vector2f b){
 
 void ATMInterface::selector(sf::Event &event){
     bool selected=false;
-    for (int i = 0; i < traffic->size(); i++) 
+    for (unsigned int i = 0; i < traffic->size(); i++) 
         {
             Traffic* traffic_draw = traffic->at(i);
             float distance = get_distance_vec2(sf::Vector2f(traffic_draw->position[0]*scale_factor, traffic_draw->position[1]*-1*scale_factor),
@@ -61,7 +61,7 @@ void ATMInterface::action_parser(std::string text)
     }
     std::vector<std::string> words;
     boost::split(words, text, boost::is_any_of(", "), boost::token_compress_on);
-    for (int i = 0; i < traffic->size(); i++) 
+    for (unsigned int i = 0; i < traffic->size(); i++) 
     {
         // We havent selected anything
         if (!this->selector_bool){
@@ -76,7 +76,7 @@ void ATMInterface::action_parser(std::string text)
             continue;
         }
 
-        for (int w_index = 0; w_index<words.size(); w_index++){ 
+        for (unsigned int w_index = 0; w_index<words.size(); w_index++){ 
             if (w_index>=words.size()){
                 return;
                 };
@@ -133,14 +133,14 @@ bool ATMInterface::input_handler()
                         case(27):{
                             this->selector_bool=false;
                             this->selector_code="";
-                        case(13):{
+                            }break;
+                        case(13):{//
                             action_parser(input_text);
                             this->input_text="";
-                        }break;
-                        }break;
+                            }break;
                         default:{
                             this->input_text+=event.text.unicode;
-                        }
+                            break;}
                     }
                 }
             } break;
@@ -161,6 +161,7 @@ bool ATMInterface::input_handler()
                         case (sf::Keyboard::Left):{
                             *this->acceleration+=1;
                         }break;
+                        default:break;
                     }
             } break;
 
@@ -180,7 +181,8 @@ bool ATMInterface::input_handler()
                         mouse_previous = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
                         center_fix = this->scene_view.getCenter();
                         selector(event);
-                    }
+                    }break;
+                    default:break;
                 }
             } break;
 
@@ -193,7 +195,6 @@ bool ATMInterface::input_handler()
                     update_view=true;
                 }
             } break;
-
             default:
                 break;
         }
@@ -225,7 +226,7 @@ void ATMInterface::draw_gui(std::string in)
 
 void ATMInterface::draw_airports()
 {
-    for (int i = 0; i < airports->size(); i++) {
+    for (unsigned int i = 0; i < airports->size(); i++) {
         Airport* airport = airports->at(i);
 
         sf::RectangleShape rwhdg(sf::Vector2f(15.f, MILE_5*this->scale_factor));
@@ -262,7 +263,7 @@ void ATMInterface::draw_airports()
 
 void ATMInterface::draw_traffic()
     {
-    for (int i = 0; i < traffic->size(); i++) 
+    for (unsigned int i = 0; i < traffic->size(); i++) 
         {
         Traffic* traffic_draw = traffic->at(i);
 

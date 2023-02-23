@@ -17,7 +17,7 @@ class ATMSim{
 
     float frame_length;
     int count =0;
-    int max_traffic_count = 50;
+    unsigned int max_traffic_count = 50;
 
     RangeInt acceleration = RangeInt(60, 1, 60); // rip
 

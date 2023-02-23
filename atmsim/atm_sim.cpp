@@ -42,10 +42,10 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
 void ATMSim::detect_closure_infringement()
 {
     int j = this->traffic.size()-1;
-    for (int i=0; i<this->traffic.size();i++){
+    for (unsigned int i=0; i<this->traffic.size();i++){
         this->traffic.at(i)->infringement=false;
     }
-    for (int i = 0; i < this->traffic.size(); i++){
+    for (unsigned int i = 0; i < this->traffic.size(); i++){
         for (int k = j; k>0; k--){
             float distance_xy = Utils::calculate_distance(this->traffic.at(i)->position, this->traffic.at(i+k)->position);
             float distance_z = abs(this->traffic.at(i)->position[2] - this->traffic.at(i+k)->position[2]);
@@ -60,7 +60,7 @@ void ATMSim::detect_closure_infringement()
 
 void ATMSim::detect_traffic_arrival()
 {
-    for (int i=0; i<this->traffic.size(); i++){
+    for (unsigned int i=0; i<this->traffic.size(); i++){
         Heading min(this->traffic[i]->heading-30);
         Heading max(this->traffic[i]->heading+30);
 
