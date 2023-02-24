@@ -4,9 +4,9 @@
 #include "utils.h"
 
 
-Traffic::Traffic(double longitude, double lattitude,
-                 const double speed, const double rate_of_climb,
-                 const double altitude, Airport *destination,
+Traffic::Traffic(float longitude, float lattitude,
+                 const float speed, const float rate_of_climb,
+                 const float altitude, Airport *destination,
                  std::string callsign, int frame_length)
 {
     this->position = Eigen::Vector3d(longitude, lattitude, altitude);
@@ -19,7 +19,7 @@ Traffic::Traffic(double longitude, double lattitude,
     this->heading = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
 
     this->target_speed=speed;
-    this->target_heading=heading;
+    this->target_heading=heading.value;
     this->target_altitude=altitude;
 }
 
@@ -42,7 +42,7 @@ void Traffic::verify_constraints()
 
 
 void Traffic::adjust_params(){
-    double det = (this->heading)-(this->target_heading);
+    float det = (this->heading)-(this->target_heading);
 
     det = (det>180|| det<-180) ? -det : det;
     this->rate_of_turn = (abs(det)<3) ? det : ((det < 0 ) - (det > 0 )) *3;
@@ -57,6 +57,7 @@ void Traffic::adjust_params(){
 
 void Traffic::step(Weather* weather)
 {
+    this->reward= 0;
 
     this->position[2]+=this->rate_of_climb;
     this->heading +=this->rate_of_turn;
@@ -67,4 +68,6 @@ void Traffic::step(Weather* weather)
     
     adjust_params();
     verify_constraints();
+
+    this->destination_hdg.value = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
 }

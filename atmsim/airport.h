@@ -16,7 +16,7 @@ class Airport{
             Heading runway_heading(0);
             this->code = "";
         }
-        Airport(double lattitude, double longitude, double runway_heading, std::string code){
+        Airport(float lattitude, float longitude, float runway_heading, std::string code){
             this->position[1] = lattitude;
             this->position[0] = longitude;
             this->position[2] = 0;

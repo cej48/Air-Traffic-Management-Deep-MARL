@@ -15,28 +15,30 @@ class Traffic {
 
 public:
     Eigen::Vector3d position;
-    double speed;
+    float speed;
     Heading heading;
     Airport* destination; 
     std:: string callsign;
 
     bool infringement=false;
 
-    double rate_of_climb;
-    double rate_of_turn;
-    double rate_of_speed;
+    float rate_of_climb;
+    float rate_of_turn;
+    float rate_of_speed;
 
-    Heading target_heading;
-    double target_speed;
-    double target_altitude;
+    float target_heading;
+    float target_speed;
+    float target_altitude;
 
-    double reward;
+    Heading destination_hdg;
+
+    float reward;
 
     int frame_length;
 
-    Traffic(const double longitude, const double lattitude, 
-            const double speed, const double rate_of_climb, 
-            const double altitude, Airport* destination, 
+    Traffic(const float longitude, const float lattitude, 
+            const float speed, const float rate_of_climb, 
+            const float altitude, Airport* destination, 
             std::string callsign, int framerate);
 
     void step(Weather* weather);

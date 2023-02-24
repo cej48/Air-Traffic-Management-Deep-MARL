@@ -29,13 +29,17 @@ class ATMSim{
     ATMInterface* interface;
 
     void detect_closure_infringement();
-    double calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
+    float calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
 
     void detect_traffic_arrival();
     void verify_boundary_constraints();
     void spawn_aircraft();
 
+
 public:
+
+    void calculate_rewards();
+
     std::vector<Traffic*> traffic = std::vector<Traffic*>();
     std::vector<Airport*> airports = std::vector<Airport*>();
     ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);

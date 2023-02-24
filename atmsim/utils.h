@@ -4,10 +4,10 @@
 
 namespace Utils{
 
-    double calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
+    float calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
 
-    double rad_to_deg(double value);
-    double deg_to_rad(double value);
+    float rad_to_deg(float value);
+    float deg_to_rad(float value);
 
     float calculate_distance(Eigen::Vector3d a, Eigen::Vector3d b);
 }

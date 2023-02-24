@@ -71,11 +71,15 @@ void ATMSim::detect_traffic_arrival()
         if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
             return;
         }
-
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
+            this->traffic[i]->reward+=1000;
+        }
+        if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
+            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<1500)){
             this->traffic.erase(this->traffic.begin()+i);
         }
+
     }
 }
 
@@ -132,11 +136,27 @@ void ATMSim::spawn_aircraft()
     traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length));
 }
 
+void ATMSim::calculate_rewards(){
+    float sum=0;
+    for (auto &traff : this->traffic){
+        // float reward = 0;
+        traff->reward-=10;
+        if (traff->infringement){
+            traff->reward-=10000;
+        }
+        sum+=traff->reward;
+    }
+    sum = sum/this->traffic.size();
+    for (auto &traff : this->traffic){
+        traff->reward +=sum;
+    }
+}
 
+// std::vector<float[10]> ATMSim::get_obser
 
 bool ATMSim::step()
 {   
-
+    
     bool return_val = 1;
     Weather weather = Weather(1,2,3);
     count++;
@@ -154,6 +174,6 @@ bool ATMSim::step()
     for (auto item : traffic){
         item->step(&weather);
     }
-
+    this->calculate_rewards();
     return return_val;
 }

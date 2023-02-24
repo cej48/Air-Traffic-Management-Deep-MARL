@@ -208,7 +208,7 @@ bool ATMInterface::input_handler()
     return 1;
 }
 
-std::string ATMInterface::alt_to_string(double value)
+std::string ATMInterface::alt_to_string(float value)
 {
     return (value<10000) ? std::to_string((int)value) : "FL"+std::to_string((int)value/100);
 }
