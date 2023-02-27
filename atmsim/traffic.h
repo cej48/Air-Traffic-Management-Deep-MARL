@@ -33,9 +33,9 @@ public:
     Heading destination_hdg;
 
     float reward;
-
     int frame_length;
 
+    Traffic(Traffic *other);
     Traffic(const float longitude, const float lattitude, 
             const float speed, const float rate_of_climb, 
             const float altitude, Airport* destination, 

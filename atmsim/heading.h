@@ -39,6 +39,9 @@ public:
         this->value = value;
         this->operator+=(0); // force range check.
     }
+    void operator=(Heading other){
+        this->value = other.value;
+    }
     bool operator>(float value){
         return this->value>value;
     }

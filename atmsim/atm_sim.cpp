@@ -7,6 +7,18 @@
 
 using json = nlohmann::json;
 
+ATMSim::ATMSim(ATMSim *other, bool render)
+{
+    this->render = render;
+    Utils::deepcopy_pointy_vectors(&other->airports, &this->airports);
+    Utils::deepcopy_pointy_vectors(&other->traffic, &this->traffic);
+    this->lattitude_max = other->lattitude_max;
+    this->lattitude_min = other->lattitude_min;
+    this->longitude_min = other->longitude_min;
+    this->longitude_max = other->longitude_max;
+    this->max_traffic_count = other->max_traffic_count;
+    this->count = other->count;
+}
 
 ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length)
 {
@@ -136,6 +148,12 @@ void ATMSim::spawn_aircraft()
     traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length));
 }
 
+void ATMSim::copy_from_other(ATMSim *other)
+{
+    Utils::deepcopy_pointy_vectors<Traffic>(&other->traffic, &this->traffic);
+    this->environment = other->environment;
+}
+
 void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
@@ -168,7 +186,7 @@ bool ATMSim::step()
     if (this->render){
         return_val = interface->step();
     }
-    if (count%acceleration.value){ // late guard
+    if (count%acceleration.value && this->render){ // late guard
         return return_val;
     }
     for (auto item : traffic){

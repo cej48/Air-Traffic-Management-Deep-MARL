@@ -1,6 +1,6 @@
 #pragma once
 #include <eigen3/Eigen/Dense>
-// #define PI 3.14159265
+#include "traffic.h"
 
 namespace Utils{
 
@@ -10,4 +10,17 @@ namespace Utils{
     float deg_to_rad(float value);
 
     float calculate_distance(Eigen::Vector3d a, Eigen::Vector3d b);
-}
+
+    template <class T>
+
+    // Needs copy constructor.
+    void deepcopy_pointy_vectors(std::vector<T*>* a, std::vector<T*>* b)
+    {
+        b->clear();
+        for (unsigned int i=0; i<a->size(); i++)
+        {
+            b->push_back(new T(a->at(i)));
+        }
+    };
+
+};

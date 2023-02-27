@@ -22,6 +22,29 @@ Traffic::Traffic(float longitude, float lattitude,
     this->target_heading=heading.value;
     this->target_altitude=altitude;
 }
+Traffic::Traffic(Traffic* other){
+        position=other->position;
+        speed=other->speed;
+        heading=other->heading;
+        destination=other->destination; 
+        callsign=other->callsign;
+
+        infringement=other->infringement;
+
+        rate_of_climb=other->rate_of_climb;
+        rate_of_turn=other->rate_of_turn;
+        rate_of_speed=other->rate_of_speed;
+
+        target_heading=other->target_heading;
+        target_speed=other->target_speed;
+        target_altitude=other->target_altitude;
+
+        destination_hdg=other->destination_hdg;
+
+        reward=other->reward;
+
+        frame_length=other->frame_length;
+}
 
 void Traffic::verify_constraints()
 {

@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "macro.h"
+#include <iostream>
 
 namespace Utils{
 
@@ -21,4 +22,5 @@ namespace Utils{
         return sqrt(pow(a[0] - b[0],2)
                 +   pow(a[1] - b[1],2));
     }
+
 }

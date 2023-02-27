@@ -10,15 +10,8 @@
 
 class ATMSim{
 
-    float lattitude_min;
-    float lattitude_max;
-    float longitude_min;
-    float longitude_max;
 
     float frame_length;
-    int count =0;
-    unsigned int max_traffic_count = 50;
-
     RangeInt acceleration = RangeInt(60, 1, 60); // rip
 
     int framerate;
@@ -29,19 +22,31 @@ class ATMSim{
     ATMInterface* interface;
 
     void detect_closure_infringement();
-    float calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
-
     void detect_traffic_arrival();
     void verify_boundary_constraints();
     void spawn_aircraft();
 
+private:
+    float lattitude_min;
+    float lattitude_max;
+    float longitude_min;
+    float longitude_max;
+    unsigned int max_traffic_count = 50;
+    int count =0;
+
+
 
 public:
 
+    void copy_from_other(ATMSim *other);
     void calculate_rewards();
 
     std::vector<Traffic*> traffic = std::vector<Traffic*>();
     std::vector<Airport*> airports = std::vector<Airport*>();
+    float observation_space[10];
+    float action_space[10];
+    ATMSim(ATMSim *other);
+    ATMSim(ATMSim *other, bool render);
     ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
     int traffic_maximum;
     bool step();
