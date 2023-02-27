@@ -6,13 +6,13 @@
 class Airport{
     public:
         // Public to avoid excessive dataclass getter/setter
-        Eigen::Vector3d position;
+        Eigen::Vector3f position;
         Heading runway_heading;
         std::string code;
 
         Airport(){
 
-            Eigen::Vector3d position;
+            Eigen::Vector3f position;
             Heading runway_heading(0);
             this->code = "";
         }

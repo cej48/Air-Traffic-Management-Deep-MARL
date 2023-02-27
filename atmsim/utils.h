@@ -4,12 +4,12 @@
 
 namespace Utils{
 
-    float calculate_angle(Eigen::Vector3d p1, Eigen::Vector3d p2);
+    float calculate_angle(Eigen::Vector3f p1, Eigen::Vector3f p2);
 
     float rad_to_deg(float value);
     float deg_to_rad(float value);
 
-    float calculate_distance(Eigen::Vector3d a, Eigen::Vector3d b);
+    float calculate_distance(Eigen::Vector3f a, Eigen::Vector3f b);
 
     template <class T>
 

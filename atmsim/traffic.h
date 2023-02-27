@@ -14,7 +14,8 @@ class Traffic {
     void adjust_params();
 
 public:
-    Eigen::Vector3d position;
+    int ID;
+    Eigen::Vector3f position;
     float speed;
     Heading heading;
     Airport* destination; 
@@ -39,7 +40,9 @@ public:
     Traffic(const float longitude, const float lattitude, 
             const float speed, const float rate_of_climb, 
             const float altitude, Airport* destination, 
-            std::string callsign, int framerate);
+            std::string callsign, int framerate, int ID);
 
-    void step(Weather* weather);
+    std::vector<float>  get_observation();
+    void set_actions(std::vector<float> actions);
+    void step(Weather *weather);
 };

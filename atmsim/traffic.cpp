@@ -7,9 +7,9 @@
 Traffic::Traffic(float longitude, float lattitude,
                  const float speed, const float rate_of_climb,
                  const float altitude, Airport *destination,
-                 std::string callsign, int frame_length)
+                 std::string callsign, int frame_length, int ID)
 {
-    this->position = Eigen::Vector3d(longitude, lattitude, altitude);
+    this->position = Eigen::Vector3f(longitude, lattitude, altitude);
     this->speed = speed;
     this->rate_of_climb = rate_of_climb;
     this->destination = destination;
@@ -21,29 +21,32 @@ Traffic::Traffic(float longitude, float lattitude,
     this->target_speed=speed;
     this->target_heading=heading.value;
     this->target_altitude=altitude;
+    this->ID = ID;
+
 }
 Traffic::Traffic(Traffic* other){
-        position=other->position;
-        speed=other->speed;
-        heading=other->heading;
-        destination=other->destination; 
-        callsign=other->callsign;
+        this->position=other->position;
+        this->speed=other->speed;
+        this->heading=other->heading;
+        this->destination=other->destination; 
+        this->callsign=other->callsign;
 
-        infringement=other->infringement;
+        this->infringement=other->infringement;
 
-        rate_of_climb=other->rate_of_climb;
-        rate_of_turn=other->rate_of_turn;
-        rate_of_speed=other->rate_of_speed;
+        this->rate_of_climb=other->rate_of_climb;
+        this->rate_of_turn=other->rate_of_turn;
+        this->rate_of_speed=other->rate_of_speed;
 
-        target_heading=other->target_heading;
-        target_speed=other->target_speed;
-        target_altitude=other->target_altitude;
+        this->target_heading=other->target_heading;
+        this->target_speed=other->target_speed;
+        this->target_altitude=other->target_altitude;
 
-        destination_hdg=other->destination_hdg;
+        this->destination_hdg=other->destination_hdg;
 
-        reward=other->reward;
+        this->reward=other->reward;
 
-        frame_length=other->frame_length;
+        this->frame_length=other->frame_length;
+        this->ID = other->ID;
 }
 
 void Traffic::verify_constraints()
@@ -78,7 +81,7 @@ void Traffic::adjust_params(){
 
 }
 
-void Traffic::step(Weather* weather)
+void Traffic::step(Weather *weather)
 {
     this->reward= 0;
 
@@ -93,4 +96,20 @@ void Traffic::step(Weather* weather)
     verify_constraints();
 
     this->destination_hdg.value = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
+}
+
+std::vector<float> Traffic::get_observation()
+{
+
+    return {this->position[0],this->position[1], this->position[2], 
+            this->heading.value, this->speed, this->destination->position[0],
+            this->destination->position[1]};
+
+}
+
+void Traffic::set_actions(std::vector<float> actions)
+{
+    this->target_heading = actions[0];
+    this->target_altitude = actions[1];
+    this->target_speed = actions[2];
 }

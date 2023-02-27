@@ -145,7 +145,8 @@ void ATMSim::spawn_aircraft()
         } break;
     }
 
-    traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length));
+    traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length, this->traffic_ID));
+    traffic_ID++;
 }
 
 void ATMSim::copy_from_other(ATMSim *other)
@@ -192,6 +193,29 @@ bool ATMSim::step()
     for (auto item : traffic){
         item->step(&weather);
     }
+    if (this->traffic.size()==0){
+        return 0;
+    }
+    std::cout<<this->traffic[0]->callsign<<'\n';
     this->calculate_rewards();
     return return_val;
 }
+
+void ATMSim::reset()
+{
+    this->traffic.clear();
+    while (this->traffic.size()<this->max_traffic_count){
+        this->spawn_aircraft();
+    }
+}
+
+std::vector<float> ATMSim::get_rewards(){
+    std::vector<float> returns = std::vector<float>();
+    for (auto &traff : this->traffic){
+        returns.push_back(traff->reward);
+    }
+    return returns;
+}
+// Action passer protocol:
+// TARGET HEADING | TARGET_ALTITUDE | TARGET_SPEED 
+

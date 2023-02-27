@@ -18,10 +18,12 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def(py::init<ATMSim*, bool>())
     .def("step", &ATMSim::step, py::call_guard<py::gil_scoped_release>())
     .def("copy_from_other", &ATMSim::copy_from_other)
+    .def("reset",  &ATMSim::reset, py::call_guard<py::gil_scoped_release>())
+    // .def("get_observation", &ATMSim::get_observations)
     .def_readonly("traffic", &ATMSim::traffic, byref)
     
-    .def_readonly("observation_space", &ATMSim::observation_space, byref)
-    .def_readonly("action_space", &ATMSim::action_space, byref)
+    // .def_readonly("observation_space", &ATMSim::observation, byref)
+    // .def_readonly("action_space", &ATMSim::action, byref)
     ;
     py::class_<Traffic> (m, "Traffic")
     .def_readonly("position", &Traffic::position, byref)
@@ -30,6 +32,10 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def_readonly("callsign", &Traffic::callsign, byref)
     .def_readonly("destination_hdg", &Traffic::destination_hdg, byref)
     .def_readonly("destination", &Traffic::destination, byref)
+    .def("get_observation", &Traffic::get_observation)
+    .def("set_actions", &Traffic::set_actions)
+    .def_readonly("ID", &Traffic::ID, byref)
+    .def_readonly("reward", &Traffic::reward, byref)
     ;
 
     py::class_<Airport> (m, "Airport")

@@ -75,6 +75,7 @@
         "variant": "cpp",
         "dense": "cpp",
         "core": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "__locale": "cpp"
     }
 }

@@ -20,6 +20,7 @@ class ATMSim{
 
     bool render;
     ATMInterface* interface;
+    int traffic_ID=0;
 
     void detect_closure_infringement();
     void detect_traffic_arrival();
@@ -43,14 +44,14 @@ public:
 
     std::vector<Traffic*> traffic = std::vector<Traffic*>();
     std::vector<Airport*> airports = std::vector<Airport*>();
-    float observation_space[10];
-    float action_space[10];
+    std::vector<float> observation= std::vector<float>(10);
+    std::vector<float> action = std::vector<float>(10);
     ATMSim(ATMSim *other);
     ATMSim(ATMSim *other, bool render);
     ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
     int traffic_maximum;
     bool step();
-
-
-    
+    void reset();
+    std::vector<float> get_rewards();
+    void set_actions(std::vector<std::vector<float>> actions);
 };
