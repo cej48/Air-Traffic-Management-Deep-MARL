@@ -6,17 +6,24 @@
 class Airport{
     public:
         // Public to avoid excessive dataclass getter/setter
-        Eigen::Vector3d position;
+        Eigen::Vector3f position;
         Heading runway_heading;
         std::string code;
 
         Airport(){
 
-            Eigen::Vector3d position;
-            double runway_heading = 0;
+            Eigen::Vector3f position;
+            Heading runway_heading(0);
             this->code = "";
         }
-        Airport(double lattitude, double longitude, double runway_heading, std::string code){
+        Airport(Airport* other){
+            this->position[1] = other->position[1];
+            this->position[0] = other->position[0];
+            this->position[2] = other->position[2];
+            this->runway_heading = other->runway_heading;
+            this->code = other->code;
+        }
+        Airport(float lattitude, float longitude, float runway_heading, std::string code){
             this->position[1] = lattitude;
             this->position[0] = longitude;
             this->position[2] = 0;

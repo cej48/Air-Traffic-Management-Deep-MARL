@@ -14,28 +14,35 @@ class Traffic {
     void adjust_params();
 
 public:
-    Eigen::Vector3d position;
-    double speed;
+    int ID;
+    Eigen::Vector3f position;
+    float speed;
     Heading heading;
     Airport* destination; 
     std:: string callsign;
 
     bool infringement=false;
 
-    double rate_of_climb;
-    double rate_of_turn;
-    double rate_of_speed;
+    float rate_of_climb;
+    float rate_of_turn;
+    float rate_of_speed;
 
-    Heading target_heading;
-    double target_speed;
-    double target_altitude;
+    float target_heading;
+    float target_speed;
+    float target_altitude;
 
+    Heading destination_hdg;
+
+    float reward;
     int frame_length;
 
-    Traffic(const double longitude, const double lattitude, 
-            const double speed, const double rate_of_climb, 
-            const double altitude, Airport* destination, 
-            std::string callsign, int framerate);
+    Traffic(Traffic *other);
+    Traffic(float longitude, float lattitude, 
+            float speed, float rate_of_climb, 
+            float altitude, Airport* destination, 
+            std::string callsign, int framerate, int ID);
 
-    void step(Weather* weather);
+    std::vector<float>  get_observation();
+    void set_actions(std::vector<float> actions);
+    void step(Weather *weather);
 };

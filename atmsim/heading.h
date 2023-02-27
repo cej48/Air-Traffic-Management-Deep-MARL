@@ -3,50 +3,53 @@
 
 class Heading{
 public:
-    double value;
+    float value;
     Heading(){
         this->value = 0;
     }
-    Heading(double value){
+    Heading(float value){
         this->value= value;
     }
 
-    double operator+(double value){
-        double out = int(this->value+value) % 360;
+    float operator+(float value){
+        float out = int(this->value+value) % 360;
         if (out<0){
             out = out+360;
         }
         return out;
     }
 
-    double operator-(double value){
+    float operator-(float value){
         return this->operator+(-value);
     }
-    double operator-(Heading other){
+    float operator-(Heading other){
         return this->operator-(other.value);
     }
-    double operator+(Heading other){
+    float operator+(Heading other){
         return this->operator+(other.value);
     }
-    void operator+=(double value){
+    void operator+=(float value){
         this->value = this->operator+(value);
     }
 
-    void operator-=(double value){
+    void operator-=(float value){
         this->value = this->operator-(value);
     }
-    void operator=(double value){
+    void operator=(float value){
         this->value = value;
         this->operator+=(0); // force range check.
     }
-    bool operator>(double value){
+    void operator=(Heading other){
+        this->value = other.value;
+    }
+    bool operator>(float value){
         return this->value>value;
     }
-    bool operator<(double value){
+    bool operator<(float value){
         return this->value<value;
     }
 
-    bool in_range(double range, double fix){
+    bool in_range(float range, float fix){
         if (fix-range/2 < this->value && fix+range/2 > this->value){
             return true;
         }
