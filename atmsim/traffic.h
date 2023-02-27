@@ -37,9 +37,9 @@ public:
     int frame_length;
 
     Traffic(Traffic *other);
-    Traffic(const float longitude, const float lattitude, 
-            const float speed, const float rate_of_climb, 
-            const float altitude, Airport* destination, 
+    Traffic(float longitude, float lattitude, 
+            float speed, float rate_of_climb, 
+            float altitude, Airport* destination, 
             std::string callsign, int framerate, int ID);
 
     std::vector<float>  get_observation();

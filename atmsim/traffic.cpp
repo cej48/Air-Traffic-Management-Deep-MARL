@@ -5,8 +5,8 @@
 
 
 Traffic::Traffic(float longitude, float lattitude,
-                 const float speed, const float rate_of_climb,
-                 const float altitude, Airport *destination,
+                 float speed, float rate_of_climb,
+                 float altitude, Airport *destination,
                  std::string callsign, int frame_length, int ID)
 {
     this->position = Eigen::Vector3f(longitude, lattitude, altitude);
@@ -94,6 +94,9 @@ void Traffic::step(Weather *weather)
     
     adjust_params();
     verify_constraints();
+    if(std::isnan(this->position[0])){
+    std::cout<<this->speed<<'\n';
+    std::cout<<this->position<<'\n';}
 
     this->destination_hdg.value = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
 }

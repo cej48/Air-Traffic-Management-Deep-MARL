@@ -104,7 +104,9 @@ void ATMSim::verify_boundary_constraints(){
         || this->longitude_min > this->traffic[i]->position[0]
         || this->longitude_max < this->traffic[i]->position[0])
         {
-            this->traffic.erase(this->traffic.begin()+i);
+            delete traffic[i];
+            this->traffic.erase(traffic.begin()+i);
+            i--;
         }
     }
 }
@@ -144,9 +146,12 @@ void ATMSim::spawn_aircraft()
             longi = this->longitude_min + float((rand()%int(x_length*1e7))/1e7);
         } break;
     }
-
+    if (std::isnan(latti) || std::isnan(longi)){
+        return;
+        }
     traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length, this->traffic_ID));
     traffic_ID++;
+
 }
 
 void ATMSim::copy_from_other(ATMSim *other)
@@ -190,20 +195,29 @@ bool ATMSim::step()
     if (count%acceleration.value && this->render){ // late guard
         return return_val;
     }
+    if (this->traffic.empty()){
+        return 0;
+    }
     for (auto item : traffic){
         item->step(&weather);
     }
-    if (this->traffic.size()==0){
-        return 0;
-    }
-    std::cout<<this->traffic[0]->callsign<<'\n';
+    // std::cout<<this->traffic.size()<<'\n';
+    // std::cout<<this->traffic[0]->position<<'\n';
     this->calculate_rewards();
     return return_val;
 }
 
 void ATMSim::reset()
-{
-    this->traffic.clear();
+{   
+    // for (Traffic* i : this->traffic){
+    //     delete i;
+    // }
+    // // std::cout<<this->traffic[0]->position<<'\n';
+    // // std::cout<<"Fuckery"<<'\n';
+    // // std::cout<<traffic.empty()<<'\n';
+    // this->traffic.clear();
+
+
     while (this->traffic.size()<this->max_traffic_count){
         this->spawn_aircraft();
     }
