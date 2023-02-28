@@ -6,7 +6,7 @@
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
 #include <math.h>
 
-ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration)
+ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration, bool* skip_render)
 {
     this->scale_factor = scale_factor;
     this->airports = airports;
@@ -28,6 +28,7 @@ ATMInterface::ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*
     this->scene_view = sf::View(sf::FloatRect(center.x, center.y, width/2, height/2));
     gui_view = sf::View(sf::FloatRect(this->view_width/2, this->view_height/2, this->view_width, this->view_height));
     window->setFramerateLimit(60);
+    this->skip_render = skip_render;
 }
 
 float get_distance_vec2(sf::Vector2f a, sf::Vector2f b){
@@ -160,6 +161,9 @@ bool ATMInterface::input_handler()
                         }break;
                         case (sf::Keyboard::Left):{
                             *this->acceleration+=1;
+                        }break;
+                        case (sf::Keyboard::Space):{
+                            *this->skip_render = !*this->skip_render;
                         }break;
                         default:break;
                     }
