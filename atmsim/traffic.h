@@ -15,11 +15,12 @@ class Traffic {
 
 public:
     int ID;
+    int scale_speed=15;
     Eigen::Vector3f position;
     float speed;
     Heading heading;
     Airport* destination; 
-    std:: string callsign;
+    std::string callsign;
 
     bool infringement=false;
 
@@ -33,7 +34,7 @@ public:
 
     Heading destination_hdg;
 
-    float reward;
+    float reward=0;
     int frame_length;
 
     Traffic(Traffic *other);

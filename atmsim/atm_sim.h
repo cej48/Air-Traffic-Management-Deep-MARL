@@ -32,7 +32,7 @@ private:
     float lattitude_max;
     float longitude_min;
     float longitude_max;
-    unsigned int max_traffic_count = 50;
+    unsigned int max_traffic_count = 25;
     int count =0;
 
 
@@ -54,4 +54,5 @@ public:
     void reset();
     std::vector<float> get_rewards();
     void set_actions(std::vector<std::vector<float>> actions);
+    bool skip_render = 0;
 };

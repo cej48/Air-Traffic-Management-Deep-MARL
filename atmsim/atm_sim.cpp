@@ -45,7 +45,7 @@ ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bo
     environment = new Atmosphere(100,100,10);
     this->render = render;
     if (render){
-        interface = new ATMInterface(&airports, &traffic, 10000, &acceleration);
+        interface = new ATMInterface(&airports, &traffic, 10000, &acceleration, &this->skip_render);
     }
     while (this->traffic.size()<this->max_traffic_count){
         this->spawn_aircraft();
@@ -102,7 +102,10 @@ void ATMSim::verify_boundary_constraints(){
         if (this->lattitude_min > this->traffic[i]->position[1] 
         || this->lattitude_max < this->traffic[i]->position[1]
         || this->longitude_min > this->traffic[i]->position[0]
-        || this->longitude_max < this->traffic[i]->position[0])
+        || this->longitude_max < this->traffic[i]->position[0]
+        || std::isnan(this->traffic[i]->position[0])
+        || std::isnan(this->traffic[i]->position[1])
+        )
         {
             delete traffic[i];
             this->traffic.erase(traffic.begin()+i);
@@ -164,16 +167,21 @@ void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
         // float reward = 0;
-        traff->reward-=10;
+        traff->reward-=1;
         if (traff->infringement){
-            traff->reward-=10000;
+            // traff->reward-=100;
         }
+        traff->reward+=abs(traff->destination_hdg-traff->heading);
+
+        //
+        traff->reward-= abs(Utils::calculate_distance(traff->position, traff->destination->position));
+        // std::cout<<abs(traff->destination_hdg-traff->heading)<<'\n';
         sum+=traff->reward;
     }
-    sum = sum/this->traffic.size();
-    for (auto &traff : this->traffic){
-        traff->reward +=sum;
-    }
+    // sum = sum/this->traffic.size();
+    // for (auto &traff : this->traffic){
+    //     traff->reward +=sum;
+    // }
 }
 
 // std::vector<float[10]> ATMSim::get_obser
@@ -184,15 +192,24 @@ bool ATMSim::step()
     bool return_val = 1;
     Weather weather = Weather(1,2,3);
     count++;
+    bool render_now=true;
     
     this->detect_closure_infringement();
     this->detect_traffic_arrival();
     this->verify_boundary_constraints();
     
-    if (this->render){
+    if (this->skip_render && this->render){
+        render_now = false;
+        if (this->count%60==0){
+            render_now=true;
+        }
+    }
+
+    if (render_now){
+
         return_val = interface->step();
     }
-    if (count%acceleration.value && this->render){ // late guard
+    if (count%acceleration.value && render_now && this->render){ // late guard
         return return_val;
     }
     if (this->traffic.empty()){

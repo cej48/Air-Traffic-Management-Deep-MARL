@@ -24,25 +24,33 @@ class ActorNetwork(DDPGNetwork):
         model: tf.keras.models.Sequential = tf.keras.models.Sequential()
         print(self.input_shape)
         model.add(tf.keras.layers.Input(shape=self.input_shape, name="input"))
-        model.add(tf.keras.layers.Dense(units=128, activation="sigmoid"))
-        model.add(tf.keras.layers.Dense(units=128, activation="sigmoid"))
-        # model.add(tf.keras.layers.LayerNormalization(axis=1))
+        model.add(tf.keras.layers.Dense(units=512, activation="relu",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
+        model.add(tf.keras.layers.Dense(units=512, activation="relu",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
+        model.add(tf.keras.layers.LayerNormalization(axis=1))
 
-        model.add(tf.keras.layers.Dense(units=self.action_shape[0], activation="tanh", name="output"))
+        model.add(tf.keras.layers.Dense(units=self.action_shape[0], activation="tanh", name="output",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
 
         model.compile(run_eagerly=True,  optimizer=self.optimizer)
         return model
 
     @tf.function
     def gradient_ascent(self, critic, observation):
-        with tf.GradientTape() as tape:
-            
-            this_action = self.model(observation, training=True)
 
+        with tf.GradientTape() as tape:
+            this_action = self.model(observation, True)
             actor_loss = critic.predict_batch_raw(critic.merge_observation_action_batches(observation, this_action), True)
             actor_loss = -tf.math.reduce_mean(actor_loss)
 
         actor_gradient = tape.gradient(actor_loss, self.model.trainable_variables)
+
+        # actor_gradient = [None if gradient is None else tf.clip_by_norm(gradient, 5.0)
+        #                 for gradient in actor_gradient]
         self.optimizer.apply_gradients(zip(actor_gradient, self.model.trainable_variables))
 
 

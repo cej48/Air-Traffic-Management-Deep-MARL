@@ -1,5 +1,4 @@
 import random
-import gymnasium as gym
 import tensorflow as tf
 import numpy as np
 import gc
@@ -22,7 +21,7 @@ import PyATMSim
 class DDPGAgent:
     def __init__(
         self,
-        env: gym.Env,
+        env,
         beta: float,
         gamma: float,
         sample_size : int,
@@ -76,7 +75,7 @@ class DDPGAgent:
 
         self.sample_size = sample_size
 
-        self.buffer_ready = sample_size
+        self.buffer_ready = sample_size*2
 
         self.buffer = ReplayBuffer(100000, self.sample_size, self.buffer_ready, self.observation_space.shape, self.action_space.shape)
         self.beta = beta
@@ -111,6 +110,8 @@ class DDPGAgent:
         states = {i : i.get_observation() for i in self.env.traffic}  
         actions = {i : [] for i in self.env.traffic}
         rewards = {i : 0 for i in self.env.traffic}
+        terminated = {i : False for i in self.env.traffic}
+
         episode = 0
         step = 0
 
@@ -118,30 +119,32 @@ class DDPGAgent:
         meta_policy_observations = states
 
         this_step =0
+        noise = tf.random.normal(self.action_space.shape, stddev=0.1, mean=0)
         while episode<episodes:
             this_step+=1
             tic = time.perf_counter()
+            if (step%10):
+                noise = tf.random.normal(self.action_space.shape, stddev=0.1, mean=0)
             for state in states:
-                action = self.actor.model(tf.expand_dims(tf.convert_to_tensor(states[state]), 0), True)
-                actions[state] = (action[0])
+                action = self.actor.model(tf.expand_dims(tf.convert_to_tensor(states[state]), 0), True)[0].numpy()
+                action = np.clip(action+noise, -1,1)
+                actions[state] =action
+                # print(action)
 
-
-            
-            # self.env.set_actions(actions)
+            if (tf.reduce_any(tf.math.is_nan(actions[self.env.traffic[0]]))):
+                print("NaN detected")
 
             for traffic in actions:
+                actions[traffic][0] = 180 + 180*actions[traffic][0]
                 traffic.set_actions(actions[traffic])
 
-            terminated = not self.env.step() # sim returns 1 if running...
+            final_terminated = not self.env.step() # sim returns 1 if running...
             
+            for traffic in terminated:
+                terminated[traffic] = True if traffic not in self.env.traffic else False
             states = {traffic : states[traffic] for traffic in self.env.traffic}
             actions = {traffic : actions[traffic] for traffic in self.env.traffic}
             rewards = {traffic : rewards[traffic] for traffic in self.env.traffic}
-
-
-                
-
-
 
             for traffic in self.env.traffic:
                 rewards[traffic] = traffic.reward
@@ -149,20 +152,24 @@ class DDPGAgent:
             observation = {i : i.get_observation() for i in self.env.traffic}
 
             # total_reward+= sum(reward)
-            # undiscounted_reward+=sum(reward)
-            for traffic in observation:
-                self.buffer.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(observation[traffic]), terminated)
+            undiscounted_reward+=sum(rewards.values())
+            
+            for traffic in states:
+                if (terminated[traffic]):
+                    self.buffer.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(states[traffic]), terminated[traffic])
+                else:
+                    self.buffer.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(observation[traffic]), terminated[traffic])
 
-            state = observation
+            states = observation
 
             this_meta_run_accumulated_reward +=sum(rewards.values())
             
-            if step%3==0 and step!=0:
-                for traffic in self.env.traffic:
-                    self.meta_policy.generate_experience(self.actor, self.critic, meta_policy_observations[traffic], this_meta_run_accumulated_reward, self.env, self.buffer)
-                    this_meta_run_accumulated_reward=0
-                    # Copy over meta policy state heree.
-                    meta_policy_observations[traffic] = tf.convert_to_tensor(observation[traffic], dtype = tf.float32)
+            # if step%3==0 and step!=0:
+            #     for traffic in self.env.traffic:
+            #         self.meta_policy.generate_experience(self.actor, self.critic, meta_policy_observations[traffic], this_meta_run_accumulated_reward, self.env, self.buffer)
+            #         this_meta_run_accumulated_reward=0
+            #         # Copy over meta policy state heree.
+            #         meta_policy_observations[traffic] = tf.convert_to_tensor(observation[traffic], dtype = tf.float32)
 
             if self.buffer.is_sample_ready(): #dont sample the buffer if it's too small.
                 learn_state, learn_action, learn_reward, learn_observation, learn_terminated = self.buffer.sample() # function below is tf graph
@@ -170,7 +177,7 @@ class DDPGAgent:
             step+=1
 
             toc = time.perf_counter()
-            if terminated or this_step>max_steps:
+            if final_terminated or this_step>max_steps:
                 this_step=0
 
                 self.env.reset()
@@ -185,6 +192,7 @@ class DDPGAgent:
                 states = {i : i.get_observation() for i in self.env.traffic}  
                 actions = {i : [] for i in self.env.traffic}
                 rewards = {i : 0 for i in self.env.traffic}
+                terminated = {i : False for i in self.env.traffic}
                 meta_policy_observations = states
                 # state, *_ = self.env.reset()
 

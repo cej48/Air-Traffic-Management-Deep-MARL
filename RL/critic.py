@@ -10,7 +10,7 @@ class CriticNetwork(DDPGNetwork):
         observation_shape: Tuple[int],
         action_shape: Tuple[int],
         scale_factor: float = 1.0,
-        learning_rate : float = 0.001,
+        learning_rate : float = 0.003,
         model: tf.keras.Model = None,
     ) -> None:
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -23,11 +23,24 @@ class CriticNetwork(DDPGNetwork):
 
         model: tf.keras.models.Sequential = tf.keras.models.Sequential()
         model.add(tf.keras.layers.Input(shape=self.input_shape, name="input"))
-        model.add(tf.keras.layers.Dense(units=128, activation="relu"))
-        model.add(tf.keras.layers.Dense(units=128, activation="relu"))
+        model.add(tf.keras.layers.Dense(units=32, activation="relu",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
+        model.add(tf.keras.layers.Dense(units=256, activation="relu",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
+        model.add(tf.keras.layers.Dense(units=512, activation="relu",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
+        model.add(tf.keras.layers.Dense(units=512, activation="relu",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
         # model.add(tf.keras.layers.LayerNormalization(axis=1))
+        model.add(tf.keras.layers.LayerNormalization(axis=1))
 
-        model.add(tf.keras.layers.Dense(units=self.output_shape[0], activation="linear", name="output"))
+        model.add(tf.keras.layers.Dense(units=self.output_shape[0], activation="relu", name="output",
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+                                        bias_initializer=tf.keras.initializers.Zeros()))
         model.compile(run_eagerly=True,  optimizer=self.optimizer)
         return model
 
@@ -39,16 +52,19 @@ class CriticNetwork(DDPGNetwork):
     @tf.function 
     def gradient_descent(self, target_critic, target_observation_action, learn_state_actions, learn_terminated, learn_rewards, gamma):
 
-        learn_rewards = tf.reshape(tf.cast(learn_rewards, float), (len(learn_rewards),1)) # Reshaped for correct matrix *
-        learn_terminated = tf.reshape(1 - tf.cast(learn_terminated, dtype=tf.float32), (len(learn_terminated), 1)) # Mask, s.t if terminated, value is 0
-        y = learn_rewards + gamma * (target_critic.predict_batch_raw(target_observation_action, training=False))*learn_terminated
-
         with tf.GradientTape() as tape:
+            learn_rewards = tf.reshape(tf.cast(learn_rewards, float), (len(learn_rewards),1)) # Reshaped for correct matrix *
+            learn_terminated = tf.reshape(1 - tf.cast(learn_terminated, dtype=tf.float32), (len(learn_terminated), 1)) # Mask, s.t if terminated, value is 0
+            y = learn_rewards + gamma * (target_critic.predict_batch_raw(target_observation_action, training=False))*learn_terminated
             critic_val = self.model(learn_state_actions, training=True)
             critic_loss = tf.math.reduce_mean(tf.math.square(y-critic_val))
             # critic_loss = tf.math.square(y-critic_val)
         
+
         critic_gradient = tape.gradient(critic_loss, self.model.trainable_variables)
+
+        # critic_gradient = [None if gradient is None else tf.clip_by_norm(gradient, 5.0)
+        #                     for gradient in critic_gradient]
         self.optimizer.apply_gradients(zip(critic_gradient, self.model.trainable_variables))
         
 

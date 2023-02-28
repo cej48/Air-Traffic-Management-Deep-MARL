@@ -5,7 +5,6 @@ from typing import Tuple
 from ddpg_network import DDPGNetwork
 from actor import ActorNetwork
 from critic import CriticNetwork
-import gymnasium as gym
 import PyATMSim
 import copy
 # from gym.envs.mujoco.humanoid_v4 import HumanoidEnv
@@ -83,6 +82,7 @@ class MetaPolicy(DDPGNetwork):
                             actor_policy_reward, master_sim, buffer):
         self.mp_env.copy_from_other(master_sim)
         return
+
         d_0 = observation
         state = observation
         for i in tf.range(0,self.peak_ahead):

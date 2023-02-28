@@ -49,9 +49,11 @@ class ATMInterface{
     void action_parser(std::string text);
 
     std::string alt_to_string(float value);
+
+    bool* skip_render;
     // std::string alt_display();
 
     public:
-        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration);
+        ATMInterface(std::vector<Airport*> *airports, std::vector<Traffic*> *traffic, int scale_factor, RangeInt *acceleration, bool *skip_render);
         bool step();
 };
