@@ -85,11 +85,13 @@ void ATMSim::detect_traffic_arrival()
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
-            this->traffic[i]->reward+=1000;
+            this->traffic[i]->reward+=10;
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<1500)){
+            this->traffic[i]->reward+=100;
             this->traffic.erase(this->traffic.begin()+i);
+
         }
 
     }
@@ -110,6 +112,7 @@ void ATMSim::verify_boundary_constraints(){
             delete traffic[i];
             this->traffic.erase(traffic.begin()+i);
             i--;
+            
         }
     }
 }
@@ -171,10 +174,10 @@ void ATMSim::calculate_rewards(){
         if (traff->infringement){
             // traff->reward-=100;
         }
-        traff->reward+=abs(traff->destination_hdg-traff->heading);
+        // traff->reward+=abs(traff->destination_hdg-traff->heading);
 
         //
-        traff->reward-= abs(Utils::calculate_distance(traff->position, traff->destination->position));
+        traff->reward-= 10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
         // std::cout<<abs(traff->destination_hdg-traff->heading)<<'\n';
         sum+=traff->reward;
     }
@@ -220,6 +223,9 @@ bool ATMSim::step()
     }
     // std::cout<<this->traffic.size()<<'\n';
     // std::cout<<this->traffic[0]->position<<'\n';
+    while (this->traffic.size()<this->max_traffic_count){
+        this->spawn_aircraft();
+    }
     this->calculate_rewards();
     return return_val;
 }
@@ -240,13 +246,6 @@ void ATMSim::reset()
     }
 }
 
-std::vector<float> ATMSim::get_rewards(){
-    std::vector<float> returns = std::vector<float>();
-    for (auto &traff : this->traffic){
-        returns.push_back(traff->reward);
-    }
-    return returns;
-}
 // Action passer protocol:
 // TARGET HEADING | TARGET_ALTITUDE | TARGET_SPEED 
 

@@ -106,7 +106,7 @@ std::vector<float> Traffic::get_observation()
 {
 
     return {this->position[0]/2.5f,(this->position[1]-50)/3, this->position[2]/41000, 
-            this->heading.value/360, this->speed/350, this->destination->position[0]/2.5f,
+            (180-this->heading.value)/180, this->speed/350, this->destination->position[0]/2.5f,
             (this->destination->position[1]-50)/3};
 
 }

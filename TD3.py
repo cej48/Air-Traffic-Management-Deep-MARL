@@ -59,9 +59,9 @@ def parse_args():
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.1,
+    parser.add_argument("--exploration-noise", type=float, default=0.25,
         help="the scale of exploration noise")
-    parser.add_argument("--learning-starts", type=int, default=25e3,
+    parser.add_argument("--learning-starts", type=int, default=10e3,
         help="timestep to start learning")
     parser.add_argument("--policy-frequency", type=int, default=2,
         help="the frequency of training policy (delayed)")
@@ -112,8 +112,8 @@ class Actor(nn.Module):
 class EnvWrap():
     def __init__(self):
         self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0)
-        self.action_space = gym.spaces.Box(low=0, high=360, shape = (3,))
-        self.observation_space = gym.spaces.Box(low=-10, high=10, shape  = np.array(self.env.traffic[0].get_observation()).shape)
+        self.action_space = gym.spaces.Box(low=-1, high=1, shape = (3,))
+        self.observation_space = gym.spaces.Box(low=-1, high=1, shape  = np.array(self.env.traffic[0].get_observation()).shape)
         self.single_observation_space = self.observation_space
         self.single_action_space = self.action_space
     def reset(self):
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     rewards = {i : 0 for i in envs.env.traffic}
     terminated = {i : False for i in envs.env.traffic}
 
-
+    noise = torch.normal(0, actor.action_scale * args.exploration_noise)
     # for each step
     for global_step in range(args.total_timesteps):
         # ALGO LOGIC: put action logic here
@@ -176,18 +176,50 @@ if __name__ == "__main__":
         else:
             with torch.no_grad():
                 for state in states:
-                    action = actor(torch.Tensor(obs).to(device))
-                    action += torch.normal(0, actor.action_scale * args.exploration_noise)
-                    action = actions.cpu().numpy().clip(envs.single_action_space.low, envs.single_action_space.high)
+                    action = actor(torch.Tensor(states[state]).to(device))
+                    print(action)
+                    action += noise
+                    if global_step%100==0:
+                        noise = torch.normal(0, actor.action_scale * args.exploration_noise)
+                    action = action.cpu().numpy().clip(envs.single_action_space.low, envs.single_action_space.high)
                     actions[state] = action
+        this_action=0
         for traffic in actions:
-            actions[traffic][0] = 180 + 180*actions[traffic][0]
-            traffic.set_actions(actions[traffic])
-
+            this_action = actions[traffic]
+            this_action[0] = 180 + 180*this_action[0]
+            traffic.set_actions(this_action)
+        # print(this_action)
+        
+        # print(states)
         # TRY NOT TO MODIFY: execute the game and log data.
         # next_obs, rewards, dones, infos = envs.step(actions)ffinal_terminated = not self.env.step(inal_terminated = not self.env.step()
         final_terminated = not envs.step()
 
+        for traffic in states:
+            terminated[traffic] = True if traffic not in envs.env.traffic else False
+
+        # for traffic in envs.env.traffic:
+        #     states[traffic] = states[traffic] if traffic in states else 
+            # actions[traffic] = actions[traffic] if traffic in actions else np.empty()
+
+        for traffic in states:
+            rewards[traffic] = 35 + traffic.reward
+            # print(rewards[traffic] )
+
+        observation = {i : i.get_observation() for i in envs.env.traffic}
+        # TRY NOT TO MODIFY: save data to reply buffer; handle `terminal_observation`
+        for traffic in states:
+            if (terminated[traffic]):
+                rb.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(states[traffic]), terminated[traffic])
+            else:
+                rb.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(observation[traffic]), terminated[traffic])
+
+        exists_and_is_present = set(envs.env.traffic) & set(states.keys())
+        states = {traffic : states[traffic] for traffic in exists_and_is_present}
+        actions = {traffic : actions[traffic] for traffic in exists_and_is_present}
+        rewards = {traffic : rewards[traffic] for traffic in exists_and_is_present}
+        terminated = {traffic : terminated[traffic] for traffic in exists_and_is_present}
+        
         if final_terminated:
             envs.reset()
             undiscounted_reward=0
@@ -196,32 +228,6 @@ if __name__ == "__main__":
             rewards = {i : 0 for i in envs.env.traffic}
             terminated = {i : False for i in envs.env.traffic}
             continue
-
-
-        # TRY NOT TO MODIFY: record rewards for plotting purposes
-        # for info in infos:
-        #     if "episode" in info.keys():
-        #         print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
-        #         writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
-        #         writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
-        #         break
-
-        for traffic in terminated:
-            terminated[traffic] = True if traffic not in envs.env.traffic else False
-        states = {traffic : states[traffic] for traffic in envs.env.traffic}
-        actions = {traffic : actions[traffic] for traffic in envs.env.traffic}
-        rewards = {traffic : rewards[traffic] for traffic in envs.env.traffic}
-
-        for traffic in envs.env.traffic:
-            rewards[traffic] = traffic.reward
-        
-        observation = {i : i.get_observation() for i in envs.env.traffic}
-        # TRY NOT TO MODIFY: save data to reply buffer; handle `terminal_observation`
-        for traffic in states:
-            if (terminated[traffic]):
-                rb.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(states[traffic]), terminated[traffic])
-            else:
-                rb.insert(np.array(states[traffic]), actions[traffic], rewards[traffic], np.array(observation[traffic]), terminated[traffic])
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         states = observation
@@ -247,6 +253,7 @@ if __name__ == "__main__":
             qf1_loss = F.mse_loss(qf1_a_values, next_q_value)
             qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
             qf_loss = qf1_loss + qf2_loss
+            # print(qf_loss)
 
             # optimize the model
             q_optimizer.zero_grad()
@@ -276,6 +283,13 @@ if __name__ == "__main__":
                 writer.add_scalar("losses/actor_loss", actor_loss.item(), global_step)
                 print("SPS:", int(global_step / (time.time() - start_time)))
                 writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
+        for traffic in envs.env.traffic:
+            if traffic not in states:
+                states[traffic] = traffic.get_observation()
+                # rewards[traffic]=0
+                # observation[traffic] = []
+                # actions[traffic] = []
+                # terminated[traffic] =False
 
     envs.close()
     writer.close()
