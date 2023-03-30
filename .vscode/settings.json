@@ -76,6 +76,8 @@
         "dense": "cpp",
         "core": "cpp",
         "__nullptr": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "shared_mutex": "cpp",
+        "cfenv": "cpp"
     }
 }

@@ -17,6 +17,7 @@
                 "${fileDirname}/main",
                 "-DARMA_DONT_USE_WRAPPER",
                 "-lopenblas",
+                "-ltbb",
                 "-llapack",
                 "-lsfml-graphics ",
                 "-lsfml-window ",
@@ -49,6 +50,7 @@
                 "-DARMA_DONT_USE_WRAPPER",
                 "-lopenblas",
                 "-llapack",
+                "-ltbb",
                 "-lsfml-graphics ",
                 "-lsfml-window ",
                 "-lsfml-system"

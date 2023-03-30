@@ -87,8 +87,8 @@ void Traffic::step(Weather *weather)
     this->position[2]+=this->rate_of_climb *this->scale_speed;
     this->heading +=this->rate_of_turn *this->scale_speed;
 
-    this->position[0]+=sin(this->heading.value*(PI/180))*1/pow(60,3)*this->speed *this->scale_speed;
-    this->position[1]+=cos(this->heading.value*(PI/180))*1/pow(60,3)*this->speed *this->scale_speed;
+    this->position[0]+=(sin(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
+    this->position[1]+=(cos(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
     this->speed += this->rate_of_speed *this->scale_speed;
     
     adjust_params();

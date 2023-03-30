@@ -16,6 +16,7 @@ class Traffic {
 public:
     int ID;
     int scale_speed=15;
+    bool terminated = false;
     Eigen::Vector3f position;
     float speed;
     Heading heading;

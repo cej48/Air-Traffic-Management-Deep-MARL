@@ -36,6 +36,7 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def("set_actions", &Traffic::set_actions)
     .def_readonly("ID", &Traffic::ID, byref)
     .def_readonly("reward", &Traffic::reward, byref)
+    .def_readonly("terminated", &Traffic::terminated, byref)
     ;
 
     py::class_<Airport> (m, "Airport")

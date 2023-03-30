@@ -2,6 +2,7 @@
 #include "atm_sim.h"
 #include "traffic.h"
 #include "utils.h"
+#include <execution>
 #include <random>
 #include <nlohmann/json.hpp>
 
@@ -85,12 +86,13 @@ void ATMSim::detect_traffic_arrival()
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
-            this->traffic[i]->reward+=10;
+            // this->traffic[i]->reward+=10;
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<1500)){
-            this->traffic[i]->reward+=100;
-            this->traffic.erase(this->traffic.begin()+i);
+            // this->traffic[i]->reward+=100;
+            // this->traffic.erase(this->traffic.begin()+i);
+            this->traffic[i]->terminated = true;
 
         }
 
@@ -109,9 +111,10 @@ void ATMSim::verify_boundary_constraints(){
         || std::isnan(this->traffic[i]->position[1])
         )
         {
-            delete traffic[i];
-            this->traffic.erase(traffic.begin()+i);
-            i--;
+            // delete traffic[i];
+            // this->traffic.erase(traffic.begin()+i);
+            this->traffic[i]->terminated = true;
+            // i--;
             
         }
     }
@@ -170,7 +173,7 @@ void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
         // float reward = 0;
-        traff->reward-=1;
+        // traff->reward-=1;
         if (traff->infringement){
             // traff->reward-=100;
         }
@@ -196,7 +199,14 @@ bool ATMSim::step()
     Weather weather = Weather(1,2,3);
     count++;
     bool render_now=true;
-    
+    for (unsigned int i=0; i<this->traffic.size(); i++){
+        if (this->traffic[i]->terminated){
+            delete traffic[i];
+            this->traffic.erase(traffic.begin()+i);
+            i--;
+        }
+    }
+
     this->detect_closure_infringement();
     this->detect_traffic_arrival();
     this->verify_boundary_constraints();
@@ -218,9 +228,20 @@ bool ATMSim::step()
     if (this->traffic.empty()){
         return 0;
     }
-    for (auto item : traffic){
-        item->step(&weather);
-    }
+    // parallel step
+    std::for_each(
+        std::execution::par,
+        this->traffic.begin(),
+        this->traffic.end(),
+        [&weather](auto&& item)
+        {
+            item->step(&weather);
+        }
+    );
+
+    // for (auto item : traffic){
+    //     item->step(&weather);
+    // }
     // std::cout<<this->traffic.size()<<'\n';
     // std::cout<<this->traffic[0]->position<<'\n';
     while (this->traffic.size()<this->max_traffic_count){
