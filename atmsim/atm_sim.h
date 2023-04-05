@@ -12,7 +12,7 @@ class ATMSim{
 
 
     float frame_length;
-    RangeInt acceleration = RangeInt(60, 1, 60); // rip
+    RangeInt acceleration = RangeInt(1000, 1, 60); // rip
 
     int framerate;
 

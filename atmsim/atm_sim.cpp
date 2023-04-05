@@ -132,7 +132,7 @@ void ATMSim::spawn_aircraft()
 
     float latti;
     float longi;
-    switch(rand()%4){
+    switch(0%4){
     // switch(0){
         //TOP
         case(0):{
@@ -180,8 +180,9 @@ void ATMSim::calculate_rewards(){
         // traff->reward+=abs(traff->destination_hdg-traff->heading);
 
         //
-        traff->reward-= 10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
+        traff->reward=  -10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
         // std::cout<<abs(traff->destination_hdg-traff->heading)<<'\n';
+        // std::cout<<traff->reward<<'\n';
         sum+=traff->reward;
     }
     // sum = sum/this->traffic.size();
@@ -198,7 +199,29 @@ bool ATMSim::step()
     bool return_val = 1;
     Weather weather = Weather(1,2,3);
     count++;
-    bool render_now=true;
+    
+    // if (this->skip_render && this->render){
+    //     render_now = false;
+    //     if (this->count%60==0){
+    //         render_now=true;
+    //     }
+    // }
+
+    // if (render_now){
+
+    //     return_val = interface->step();
+    // }
+    // if (count%acceleration.value && render_now && this->render){
+    //     return return_val;
+    // }
+    // if (this->traffic.empty()){
+    //     return 0;
+    // }
+
+
+    if (!skip_render || count%acceleration.value==0){
+        return_val = interface->step();
+    }
     for (unsigned int i=0; i<this->traffic.size(); i++){
         if (this->traffic[i]->terminated){
             delete traffic[i];
@@ -210,24 +233,6 @@ bool ATMSim::step()
     this->detect_closure_infringement();
     this->detect_traffic_arrival();
     this->verify_boundary_constraints();
-    
-    if (this->skip_render && this->render){
-        render_now = false;
-        if (this->count%60==0){
-            render_now=true;
-        }
-    }
-
-    if (render_now){
-
-        return_val = interface->step();
-    }
-    if (count%acceleration.value && render_now && this->render){ // late guard
-        return return_val;
-    }
-    if (this->traffic.empty()){
-        return 0;
-    }
     // parallel step
     std::for_each(
         std::execution::par,
@@ -248,6 +253,7 @@ bool ATMSim::step()
         this->spawn_aircraft();
     }
     this->calculate_rewards();
+
     return return_val;
 }
 
