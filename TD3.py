@@ -46,25 +46,25 @@ def parse_args():
     # Algorithm specific arguments
     parser.add_argument("--env-id", type=str, default="HopperBulletEnv-v0",
         help="the id of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=1000000,
+    parser.add_argument("--total-timesteps", type=int, default=1000000000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=3e-4,
         help="the learning rate of the optimizer")
     parser.add_argument("--buffer-size", type=int, default=int(1e6),
         help="the replay memory buffer size")
-    parser.add_argument("--gamma", type=float, default=0.9999,
+    parser.add_argument("--gamma", type=float, default=0.99,
         help="the discount factor gamma")
-    parser.add_argument("--tau", type=float, default=0.005,
+    parser.add_argument("--tau", type=float, default=0.0005,
         help="target smoothing coefficient (default: 0.005)")
-    # parser.add_argument("--batch-size", type=int, default=16384,
+    # parser.add_argument("--batch-size", type=int, default=512,
     #     help="the batch size of sample from the reply memory")
-    parser.add_argument("--batch-size", type=int, default=2048,
+    parser.add_argument("--batch-size", type=int, default=8196,
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.1,
+    parser.add_argument("--exploration-noise", type=float, default=0.2,
         help="the scale of exploration noise")
-    parser.add_argument("--learning-starts", type=int, default=1e3,
+    parser.add_argument("--learning-starts", type=int, default=100e3,
         help="timestep to start learning")
     parser.add_argument("--policy-frequency", type=int, default=2,
         help="the frequency of training policy (delayed)")
@@ -223,17 +223,22 @@ if __name__ == "__main__":
             this_action = actions[traffic].copy()
             this_action[0] = 180 + 180*this_action[0]
             this_action[1] = 20500* + 20500*this_action[1]
-            this_action[2] = 250 + (100*this_action[2])
+            this_action[2] = 245 + (105*this_action[2])
             traffic.set_actions(this_action)
 
         final_terminated = not envs.step()
+
+        for state in list(states): # remove traffic that has timed out. (non terminal state, but may be stuck)
+            if state not in envs.env.traffic:
+                states.pop(state)
 
         for traffic in states:
             terminated[traffic] = traffic.terminated
 
         for traffic in states:
-            rewards[traffic] =(45 + traffic.reward)
 
+            rewards[traffic] =(traffic.reward)
+            # print(rewards  [traffic])
         observation = {i : i.get_observation() for i in envs.env.traffic}
         
         for traffic in states:
@@ -251,7 +256,7 @@ if __name__ == "__main__":
         states = observation
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
-            for i in range(len(envs.env.traffic)):
+            # for i in range(len(envs.env.traffic)):
                 data = buffer.sample(args.batch_size)
                 with torch.no_grad():
                     clipped_noise = (torch.randn_like(data.actions, device=device) * args.policy_noise).clamp(

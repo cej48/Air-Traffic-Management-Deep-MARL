@@ -7,7 +7,8 @@
 Traffic::Traffic(float longitude, float lattitude,
                  float speed, float rate_of_climb,
                  float altitude, Airport *destination,
-                 std::string callsign, int frame_length, int ID)
+                 std::string callsign, int frame_length, int ID
+                 , int start_count)
 {
     this->position = Eigen::Vector3f(longitude, lattitude, altitude);
     this->speed = speed;
@@ -17,10 +18,15 @@ Traffic::Traffic(float longitude, float lattitude,
     this->frame_length = frame_length;
 
     this->heading = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
+    // std::cout<<'\n';
+    // std::cout<<this->heading.value<<'\n';
+    // std::cout<<this->target_heading<<'\n';
+    // std::cout<<this->destination->code<<'\n';
     this->target_speed=speed;
     this->target_heading=heading.value;
     this->target_altitude=altitude;
     this->ID = ID;
+    this->start_count = start_count;
 
 }
 Traffic::Traffic(Traffic* other){
@@ -82,8 +88,7 @@ void Traffic::adjust_params(){
 
 void Traffic::step(Weather *weather)
 {
-    this->reward= 0;
-
+    // this->reward= 0;
     this->position[2]+=this->rate_of_climb *this->scale_speed;
     this->heading +=this->rate_of_turn *this->scale_speed;
 
@@ -99,10 +104,11 @@ void Traffic::step(Weather *weather)
     }
 
     this->destination_hdg.value = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
+    // std::cout<<this->destination_hdg.value<<'\n';
 }
 
 // pos x, pos y, pos z, heading, 
-std::vector<float> Traffic::get_observation()
+std::vector<double> Traffic::get_observation()
 {
 
     return {this->position[0]/2.5f, (this->position[1]-51.5)/1.5,this->position[2]/41000, 
