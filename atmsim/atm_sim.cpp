@@ -86,11 +86,11 @@ void ATMSim::detect_traffic_arrival()
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
-            // this->traffic[i]->reward+=10;
+            this->traffic[i]->reward+=100;
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<1500)){
-            // this->traffic[i]->reward+=100;
+            this->traffic[i]->reward+=1000;
             // this->traffic.erase(this->traffic.begin()+i);
             this->traffic[i]->terminated = true;
 
@@ -132,7 +132,7 @@ void ATMSim::spawn_aircraft()
 
     float latti;
     float longi;
-    switch(0%4){
+    switch(rand()%4){
     // switch(0){
         //TOP
         case(0):{

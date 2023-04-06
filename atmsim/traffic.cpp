@@ -105,7 +105,7 @@ void Traffic::step(Weather *weather)
 std::vector<float> Traffic::get_observation()
 {
 
-    return {this->position[0]/2.5f,(this->position[1]-51.5)/1.5,this->position[2]/41000, 
+    return {this->position[0]/2.5f, (this->position[1]-51.5)/1.5,this->position[2]/41000, 
             (180-this->heading.value)/180, this->speed/350, this->destination->position[0]/2.5f,
             (this->destination->position[1]-50)/3};
 
