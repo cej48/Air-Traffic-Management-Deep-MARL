@@ -50,21 +50,21 @@ def parse_args():
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=3e-4,
         help="the learning rate of the optimizer")
-    parser.add_argument("--buffer-size", type=int, default=int(1e6),
+    parser.add_argument("--buffer-size", type=int, default=int(1e5),
         help="the replay memory buffer size")
     parser.add_argument("--gamma", type=float, default=0.99,
         help="the discount factor gamma")
-    parser.add_argument("--tau", type=float, default=0.0005,
+    parser.add_argument("--tau", type=float, default=0.005,
         help="target smoothing coefficient (default: 0.005)")
     # parser.add_argument("--batch-size", type=int, default=512,
     #     help="the batch size of sample from the reply memory")
-    parser.add_argument("--batch-size", type=int, default=8196,
+    parser.add_argument("--batch-size", type=int, default=512,
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.2,
+    parser.add_argument("--exploration-noise", type=float, default=0.1,
         help="the scale of exploration noise")
-    parser.add_argument("--learning-starts", type=int, default=100e3,
+    parser.add_argument("--learning-starts", type=int, default=5e3,
         help="timestep to start learning")
     parser.add_argument("--policy-frequency", type=int, default=2,
         help="the frequency of training policy (delayed)")
@@ -81,15 +81,18 @@ class QNetwork(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod() + np.prod(env.single_action_space.shape), 256)
         self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 256)
-        self.fc4 = nn.Linear(256, 1)
+
+        self.fc3 = nn.Linear(512, 512)
+        self.fc4 = nn.Linear(512, 256)
+        self.fc5 = nn.Linear(256, 1)
 
     def forward(self, x, a):
         x = torch.cat([x, a], 1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = F.relu(self.fc4(x))
+        x = self.fc5(x)
         return x
 
 
@@ -98,7 +101,8 @@ class Actor(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod(), 256)
         self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(512, 512)
+        self.fc4 = nn.Linear(512, 256)
         self.fc_mu = nn.Linear(256, np.prod(env.single_action_space.shape))
         # action rescaling
         self.register_buffer(
@@ -112,6 +116,7 @@ class Actor(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
         x = torch.tanh(self.fc_mu(x))
         
         return x * self.action_scale + self.action_bias
@@ -189,6 +194,7 @@ if __name__ == "__main__":
     noise = torch.normal(0, actor.action_scale * args.exploration_noise)
     # for each step
     for global_step in range(args.total_timesteps):
+        
         start_time = time.time()
         # ALGO LOGIC: put action logic here
         new_state = {}
@@ -226,6 +232,7 @@ if __name__ == "__main__":
             this_action[2] = 245 + (105*this_action[2])
             traffic.set_actions(this_action)
 
+
         final_terminated = not envs.step()
 
         for state in list(states): # remove traffic that has timed out. (non terminal state, but may be stuck)
@@ -236,8 +243,7 @@ if __name__ == "__main__":
             terminated[traffic] = traffic.terminated
 
         for traffic in states:
-
-            rewards[traffic] =(traffic.reward)
+            rewards[traffic] =(35+(traffic.reward))
             # print(rewards  [traffic])
         observation = {i : i.get_observation() for i in envs.env.traffic}
         

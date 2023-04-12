@@ -80,7 +80,7 @@ void ATMSim::detect_traffic_arrival()
 
         // first check traffic is pointing in the correct direction.
         if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
-            return;
+            // return;
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2500){
@@ -88,9 +88,9 @@ void ATMSim::detect_traffic_arrival()
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
             && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<1500){
-            this->traffic[i]->reward+=50;
+            this->traffic[i]->reward+=300;
             std::cout<<"Arrived"<<'\n';
-            this->traffic[i]->terminated = true;
+            this->traffic[i]->silent_terminated = true;
 
         }
 
@@ -110,7 +110,7 @@ void ATMSim::verify_boundary_constraints(){
         )
         {
 
-            this->traffic[i]->reward-=50;
+            // this->traffic[i]->reward-=100;
             this->traffic[i]->terminated = true;
         }
     }
@@ -121,7 +121,7 @@ void ATMSim::spawn_aircraft()
 
     int value = 10+rand()%89;
     int destination = rand()%this->airports.size();
-    int altitude = 20000+(rand()%20)*1000;
+    int altitude = 10000+(rand()%10)*1000;
 
     float y_length = this->lattitude_max-lattitude_min;
     float x_length = this->longitude_max-longitude_min;
@@ -185,12 +185,14 @@ bool ATMSim::step()
     count++;
 
     if (!skip_render || count%acceleration.value==0){
-        return_val = interface->step();
+        for (int i=0; i<30;i++){
+            return_val = interface->step();
+        }
     }
     for (unsigned int i=0; i<this->traffic.size(); i++){
         this->traffic[i]->reward=0;
 
-        if (this->traffic[i]->terminated || (this->count - this->traffic[i]->start_count) > 1000){
+        if (this->traffic[i]->terminated || this->traffic[i]->silent_terminated || (this->count - this->traffic[i]->start_count) > this->traffic_timeout){
             delete traffic[i];
             this->traffic.erase(traffic.begin()+i);
             i--;

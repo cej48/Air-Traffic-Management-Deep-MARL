@@ -163,7 +163,9 @@ bool ATMInterface::input_handler()
                             *this->acceleration+=1;
                         }break;
                         case (sf::Keyboard::Space):{
-                            *this->skip_render = !*this->skip_render;
+                            if (!this->selector_bool){
+                                *this->skip_render = !*this->skip_render;
+                            }
                         }break;
                         default:break;
                     }
