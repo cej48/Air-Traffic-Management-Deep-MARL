@@ -15,7 +15,7 @@ class Traffic {
 
 public:
     int ID;
-    int scale_speed=50;
+    int scale_speed=15;
     int start_count;
     bool terminated = false;
     bool silent_terminated = false;

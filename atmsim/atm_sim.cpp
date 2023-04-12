@@ -184,8 +184,8 @@ bool ATMSim::step()
     Weather weather = Weather(1,2,3);
     count++;
 
-    if (!skip_render || count%acceleration.value==0){
-        for (int i=0; i<30;i++){
+    if (!skip_render || count%60==0){
+        for (int i=0; i<acceleration.value;i++){
             return_val = interface->step();
         }
     }

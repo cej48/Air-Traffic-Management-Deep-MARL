@@ -33,7 +33,7 @@ private:
     float lattitude_max;
     float longitude_min;
     float longitude_max;
-    unsigned int max_traffic_count = 1;
+    unsigned int max_traffic_count = 25;
     int count =0;
 
 

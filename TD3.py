@@ -243,73 +243,60 @@ if __name__ == "__main__":
             terminated[traffic] = traffic.terminated
 
         for traffic in states:
-            rewards[traffic] =(35+(traffic.reward))
+            rewards[traffic] =35+(traffic.reward)
             # print(rewards  [traffic])
         observation = {i : i.get_observation() for i in envs.env.traffic}
         
         for traffic in states:
             buffer.add(states[traffic], observation[traffic], actions[traffic], rewards[traffic], terminated[traffic], [])
         
-        if final_terminated:
-            envs.reset()
-            undiscounted_reward=0
-            states = {i : i.get_observation() for i in envs.env.traffic}  
-            actions = {i : [] for i in envs.env.traffic}
-            rewards = {i : 0 for i in envs.env.traffic}
-            terminated = {i : False for i in envs.env.traffic}
-            continue
-
         states = observation
-        # ALGO LOGIC: training.
         if global_step > args.learning_starts:
-            # for i in range(len(envs.env.traffic)):
-                data = buffer.sample(args.batch_size)
-                with torch.no_grad():
-                    clipped_noise = (torch.randn_like(data.actions, device=device) * args.policy_noise).clamp(
-                        -args.noise_clip, args.noise_clip
-                    ) * target_actor.action_scale
 
-                    next_state_actions = (target_actor(data.next_observations) + clipped_noise).clamp(
-                        envs.single_action_space.low[0], envs.single_action_space.high[0]
-                    )
+            data = buffer.sample(args.batch_size)
+            with torch.no_grad():
+                clipped_noise = (torch.randn_like(data.actions, device=device) * args.policy_noise).clamp(
+                    -args.noise_clip, args.noise_clip
+                ) * target_actor.action_scale
 
-                    qf1_next_target = qf1_target(data.next_observations, next_state_actions)
-                    qf2_next_target = qf2_target(data.next_observations, next_state_actions)
-                    # print(qf1_next_target)
+                next_state_actions = (target_actor(data.next_observations) + clipped_noise).clamp(
+                    envs.single_action_space.low[0], envs.single_action_space.high[0]
+                )
 
-                    min_qf_next_target = torch.min(qf1_next_target, qf2_next_target)
-                    next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (min_qf_next_target).view(-1)
-                    # print(next_q_value)
+                qf1_next_target = qf1_target(data.next_observations, next_state_actions)
+                qf2_next_target = qf2_target(data.next_observations, next_state_actions)
+                # print(qf1_next_target)
 
-                qf1_a_values = qf1(data.observations, data.actions).view(-1)
-                qf2_a_values = qf2(data.observations, data.actions).view(-1)
+                min_qf_next_target = torch.min(qf1_next_target, qf2_next_target)
+                next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (min_qf_next_target).view(-1)
+                # print(next_q_value)
+
+            qf1_a_values = qf1(data.observations, data.actions).view(-1)
+            qf2_a_values = qf2(data.observations, data.actions).view(-1)
 
 
-                qf1_loss = F.mse_loss(qf1_a_values, next_q_value)
-                qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
+            qf1_loss = F.mse_loss(qf1_a_values, next_q_value)
+            qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
 
-                qf_loss = qf1_loss + qf2_loss
+            qf_loss = qf1_loss + qf2_loss
 
-                q_optimizer.zero_grad()
-                qf_loss.backward()
-                q_optimizer.step()
+            q_optimizer.zero_grad()
+            qf_loss.backward()
+            q_optimizer.step()
 
-                if global_step % args.policy_frequency == 0:
-                    actor_loss = -qf1(data.observations, actor(data.observations)).mean()
-                    # print(actor_loss)
-                    actor_optimizer.zero_grad()
-                    actor_loss.backward()
-                    actor_optimizer.step()
-                    # update the target network
-                    for param, target_param in zip(actor.parameters(), target_actor.parameters()):
-                        target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
-                    for param, target_param in zip(qf1.parameters(), qf1_target.parameters()):
-                        target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
-                    for param, target_param in zip(qf2.parameters(), qf2_target.parameters()):
-                        target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
-
-                    # print(qf2_target.state_dict()[list(qf2_target.state_dict())[1]])
-                    # print(target_actor.state_dict()[list(target_actor.state_dict())[2]])
+            if global_step % args.policy_frequency == 0:
+                actor_loss = -qf1(data.observations, actor(data.observations)).mean()
+                # print(actor_loss)
+                actor_optimizer.zero_grad()
+                actor_loss.backward()
+                actor_optimizer.step()
+                # update the target network
+                for param, target_param in zip(actor.parameters(), target_actor.parameters()):
+                    target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
+                for param, target_param in zip(qf1.parameters(), qf1_target.parameters()):
+                    target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
+                for param, target_param in zip(qf2.parameters(), qf2_target.parameters()):
+                    target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
 
         if global_step % 100 == 0:
 

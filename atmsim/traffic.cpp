@@ -77,32 +77,33 @@ void Traffic::adjust_params(){
     // std::cout<<"target_heading: "<<target_heading<<'\n';
     // std::cout<<"heading: "<<heading.value<<'\n';
     // std::cout<<"det: "<<det<<'\n';
-    det = (det>=180 || det<=-180) ?-det : det;
-    this->rate_of_turn = (abs(det)<3*this->scale_speed) ? det : ((det < 0 ) - (det > 0 )) * 3 * this->scale_speed;
+    det = (det>=180 || det<=-180) ? -det : det;
+    this->rate_of_turn = (abs(det)<3*this->scale_speed) ? det : ((det > 0 ) - (det < 0 )) * 3 * this->scale_speed;
     // std::cout<<(abs(det)<3*this->scale_speed)<<'\n';
 
 
-    det = (this->position[2] - this->target_altitude)*this->scale_speed;
-    this->rate_of_climb = (abs(det) < 20*this->scale_speed) ? det : ((det < 0 ) - (det > 0 )) *20*this->scale_speed;
+    det = (this->position[2] - this->target_altitude);
+    this->rate_of_climb = (abs(det) < 20*this->scale_speed) ? -det : ((det < 0 ) - (det > 0 )) *20*this->scale_speed;
     
-    det = (this->speed - this->target_speed)*this->scale_speed;
-    this->rate_of_speed = (abs(det) < 1*this->scale_speed) ? det : ((det < 0 ) - (det > 0 ))*this->scale_speed;
+    det = (this->speed - this->target_speed);
+    this->rate_of_speed = (abs(det) < 1*this->scale_speed) ? -det : ((det < 0 ) - (det > 0 ))*this->scale_speed;
 
 }
 
 void Traffic::step(Weather *weather)
 {
     // this->reward= 0;
-    adjust_params();
-    verify_constraints();
+
     // std::cout<<"rot: "<<this->rate_of_turn<<'\n';
     // std::cout<<"heading: "<<this->heading.value<<"\n\n";
+    adjust_params();
     this->position[2]+=this->rate_of_climb; //*this->scale_speed;
     this->heading +=this->rate_of_turn; //*this->scale_speed;
 
     this->position[0]+=(sin(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
     this->position[1]+=(cos(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
     this->speed += this->rate_of_speed; //*this->scale_speed;
+    verify_constraints();
     
     if(std::isnan(this->position[0])){
         std::cout<<this->speed<<'\n';
