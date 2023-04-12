@@ -2,6 +2,7 @@
 #include "atm_sim.h"
 #include "traffic.h"
 #include "utils.h"
+#include <execution>
 #include <random>
 #include <nlohmann/json.hpp>
 
@@ -76,20 +77,21 @@ void ATMSim::detect_closure_infringement()
 void ATMSim::detect_traffic_arrival()
 {
     for (unsigned int i=0; i<this->traffic.size(); i++){
-        Heading min(this->traffic[i]->heading-30);
-        Heading max(this->traffic[i]->heading+30);
 
         // first check traffic is pointing in the correct direction.
         if (!this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
-            return;
+            // return;
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
-            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<2500)){
-            this->traffic[i]->reward+=1000;
+            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2500){
+            this->traffic[i]->reward+=10;
         }
         if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
-            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2]<1500)){
-            this->traffic.erase(this->traffic.begin()+i);
+            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<1500){
+            this->traffic[i]->reward+=300;
+            std::cout<<"Arrived"<<'\n';
+            this->traffic[i]->silent_terminated = true;
+
         }
 
     }
@@ -104,12 +106,12 @@ void ATMSim::verify_boundary_constraints(){
         || this->longitude_min > this->traffic[i]->position[0]
         || this->longitude_max < this->traffic[i]->position[0]
         || std::isnan(this->traffic[i]->position[0])
-        || std::isnan(this->traffic[i]->position[1])
+        || std::isnan(this->traffic[i]->position[1]) //|| true 
         )
         {
-            delete traffic[i];
-            this->traffic.erase(traffic.begin()+i);
-            i--;
+
+            // this->traffic[i]->reward-=100;
+            this->traffic[i]->terminated = true;
         }
     }
 }
@@ -119,7 +121,7 @@ void ATMSim::spawn_aircraft()
 
     int value = 10+rand()%89;
     int destination = rand()%this->airports.size();
-    int altitude = 20000+(rand()%20)*1000;
+    int altitude = 10000+(rand()%10)*1000;
 
     float y_length = this->lattitude_max-lattitude_min;
     float x_length = this->longitude_max-longitude_min;
@@ -130,29 +132,30 @@ void ATMSim::spawn_aircraft()
     // switch(0){
         //TOP
         case(0):{
-            latti = this->lattitude_max;
+            latti = this->lattitude_max-0.1;
             longi = this->longitude_min + float((rand()%int(x_length*1e7))/1e7);
         } break;
         //LEFT
         case(1):{
-            longi = this->longitude_min;
+            longi = this->longitude_min+0.1;
             latti = this->lattitude_min + float((rand()%int(y_length*1e7))/1e7);
         } break;
         //RIGHT
         case(2):{
-            longi = this->longitude_max;
+            longi = this->longitude_max-0.1;
             latti = this->lattitude_min + float((rand()%int(y_length*1e7))/1e7);
         } break;
         //BOTTOM
         case(3):{
-            latti = this->lattitude_min;
+            latti = this->lattitude_min+0.1;
             longi = this->longitude_min + float((rand()%int(x_length*1e7))/1e7);
         } break;
     }
     if (std::isnan(latti) || std::isnan(longi)){
         return;
         }
-    traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), this->frame_length, this->traffic_ID));
+    traffic.push_back(new Traffic(longi, latti, 350.f, 0.f, altitude, airports[destination], "BAW"+std::to_string(value), 
+                                    this->frame_length, this->traffic_ID, this->count));
     traffic_ID++;
 
 }
@@ -166,61 +169,60 @@ void ATMSim::copy_from_other(ATMSim *other)
 void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
-        // float reward = 0;
-        traff->reward-=1;
         if (traff->infringement){
             // traff->reward-=100;
         }
-        traff->reward+=abs(traff->destination_hdg-traff->heading);
+        traff->reward-= 10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
 
-        //
-        traff->reward-= abs(Utils::calculate_distance(traff->position, traff->destination->position));
-        // std::cout<<abs(traff->destination_hdg-traff->heading)<<'\n';
         sum+=traff->reward;
     }
-    // sum = sum/this->traffic.size();
-    // for (auto &traff : this->traffic){
-    //     traff->reward +=sum;
-    // }
 }
-
-// std::vector<float[10]> ATMSim::get_obser
-
 bool ATMSim::step()
 {   
     
     bool return_val = 1;
     Weather weather = Weather(1,2,3);
     count++;
-    bool render_now=true;
-    
-    this->detect_closure_infringement();
-    this->detect_traffic_arrival();
-    this->verify_boundary_constraints();
-    
-    if (this->skip_render && this->render){
-        render_now = false;
-        if (this->count%60==0){
-            render_now=true;
+
+    if (!skip_render || count%60==0){
+        for (int i=0; i<acceleration.value;i++){
+            return_val = interface->step();
+        }
+    }
+    for (unsigned int i=0; i<this->traffic.size(); i++){
+        this->traffic[i]->reward=0;
+
+        if (this->traffic[i]->terminated || this->traffic[i]->silent_terminated || (this->count - this->traffic[i]->start_count) > this->traffic_timeout){
+            delete traffic[i];
+            this->traffic.erase(traffic.begin()+i);
+            i--;
         }
     }
 
-    if (render_now){
+    this->detect_closure_infringement();
+    this->detect_traffic_arrival();
+    this->verify_boundary_constraints();
+    // parallel step
+    std::for_each(
+        std::execution::par,
+        this->traffic.begin(),
+        this->traffic.end(),
+        [&weather](auto&& item)
+        {
+            item->step(&weather);
+        }
+    );
 
-        return_val = interface->step();
-    }
-    if (count%acceleration.value && render_now && this->render){ // late guard
-        return return_val;
-    }
-    if (this->traffic.empty()){
-        return 0;
-    }
-    for (auto item : traffic){
-        item->step(&weather);
-    }
+    // for (auto item : traffic){
+    //     item->step(&weather);
+    // }
     // std::cout<<this->traffic.size()<<'\n';
     // std::cout<<this->traffic[0]->position<<'\n';
+    while (this->traffic.size()<this->max_traffic_count){
+        this->spawn_aircraft();
+    }
     this->calculate_rewards();
+
     return return_val;
 }
 
@@ -240,13 +242,6 @@ void ATMSim::reset()
     }
 }
 
-std::vector<float> ATMSim::get_rewards(){
-    std::vector<float> returns = std::vector<float>();
-    for (auto &traff : this->traffic){
-        returns.push_back(traff->reward);
-    }
-    return returns;
-}
 // Action passer protocol:
 // TARGET HEADING | TARGET_ALTITUDE | TARGET_SPEED 
 

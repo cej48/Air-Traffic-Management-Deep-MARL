@@ -16,6 +16,9 @@ class Traffic {
 public:
     int ID;
     int scale_speed=15;
+    int start_count;
+    bool terminated = false;
+    bool silent_terminated = false;
     Eigen::Vector3f position;
     float speed;
     Heading heading;
@@ -41,9 +44,10 @@ public:
     Traffic(float longitude, float lattitude, 
             float speed, float rate_of_climb, 
             float altitude, Airport* destination, 
-            std::string callsign, int framerate, int ID);
+            std::string callsign, int framerate, int ID
+            , int start_count);
 
-    std::vector<float>  get_observation();
+    std::vector<double>  get_observation();
     void set_actions(std::vector<float> actions);
     void step(Weather *weather);
 };

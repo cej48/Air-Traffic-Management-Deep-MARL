@@ -1,6 +1,6 @@
 
 import numpy as np
-import tensorflow as tf
+import torch
 from random import randint
 
 class ReplayBuffer:
@@ -8,11 +8,11 @@ class ReplayBuffer:
         self.capacity=capacity
         self.batch_size = batch_size
 
-        self.state_buffer = np.empty((self.capacity, states[0]))
-        self.action_buffer = np.empty((self.capacity, actions[0]))
-        self.reward_buffer = np.empty((self.capacity, 1))
-        self.observation_buffer = np.empty((self.capacity,states[0]))
-        self.terminated_buffer = np.empty((self.capacity, 1))
+        self.state_buffer = np.empty((self.capacity, states[0]), dtype=np.float32)
+        self.action_buffer = np.empty((self.capacity, actions[0]),dtype=np.float32)
+        self.reward_buffer = np.empty((self.capacity, 1),dtype=np.float32)
+        self.observation_buffer = np.empty((self.capacity,states[0]),dtype=np.float32)
+        self.terminated_buffer = np.empty((self.capacity, 1),dtype=np.float32)
 
         self.state_buffer.fill(0) 
         self.action_buffer.fill(0) 
@@ -50,9 +50,9 @@ class ReplayBuffer:
         sample_end = sample_point + sample_size
 
     
-        sample =   (tf.convert_to_tensor(self.state_buffer[sample_point:sample_end], dtype=tf.float32), 
-                    tf.convert_to_tensor(self.action_buffer[sample_point:sample_end], dtype=tf.float32),
-                    tf.convert_to_tensor(self.reward_buffer[sample_point:sample_end], dtype=tf.float32),
-                    tf.convert_to_tensor(self.observation_buffer[sample_point:sample_end], dtype=tf.float32), 
-                    tf.convert_to_tensor(self.terminated_buffer[sample_point:sample_end], dtype=tf.float32))
+        sample =   (torch.from_numpy(self.state_buffer[sample_point:sample_end]), 
+                    torch.from_numpy(self.action_buffer[sample_point:sample_end]),
+                    torch.from_numpy(self.reward_buffer[sample_point:sample_end]),
+                    torch.from_numpy(self.observation_buffer[sample_point:sample_end]), 
+                    torch.from_numpy(self.terminated_buffer[sample_point:sample_end]))
         return sample
