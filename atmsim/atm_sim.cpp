@@ -195,7 +195,7 @@ void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
         if (traff->infringement){
-            traff->reward-=100;
+            traff->reward-=30;
         }
         traff->reward-= 10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
 

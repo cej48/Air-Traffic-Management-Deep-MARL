@@ -48,7 +48,7 @@ def parse_args():
         help="the id of the environment")
     parser.add_argument("--total-timesteps", type=int, default=1000000000,
         help="total timesteps of the experiments")
-    parser.add_argument("--learning-rate", type=float, default=3e-4,
+    parser.add_argument("--learning-rate", type=float, default=1e-4,
         help="the learning rate of the optimizer")
     parser.add_argument("--buffer-size", type=int, default=int(1e5),
         help="the replay memory buffer size")
@@ -62,7 +62,7 @@ def parse_args():
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.2,
+    parser.add_argument("--exploration-noise", type=float, default=0.1,
         help="the scale of exploration noise")
     parser.add_argument("--learning-starts", type=int, default=5e3,
         help="timestep to start learning")
@@ -244,10 +244,12 @@ if __name__ == "__main__":
 
         for traffic in states:
             terminated[traffic] = traffic.terminated
+        
 
         for traffic in states:
-            rewards[traffic] =35+(traffic.reward)
+            rewards[traffic] =(65+(traffic.reward))#/10
             # print(rewards  [traffic])
+
         observation = {i : i.get_observation() for i in envs.env.traffic}
         
         for traffic in states:
@@ -271,10 +273,14 @@ if __name__ == "__main__":
                 # print(qf1_next_target)
 
                 min_qf_next_target = torch.min(qf1_next_target, qf2_next_target)
+                # print(data.dones)
+                # print(data.rewards)
                 next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (min_qf_next_target).view(-1)
                 # print(next_q_value)
 
+            # print(next_q_value)
             qf1_a_values = qf1(data.observations, data.actions).view(-1)
+            # print(qf1_a_values)
             qf2_a_values = qf2(data.observations, data.actions).view(-1)
 
 
@@ -282,6 +288,7 @@ if __name__ == "__main__":
             qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
 
             qf_loss = qf1_loss + qf2_loss
+            # print(qf_loss)
 
             q_optimizer.zero_grad()
             qf_loss.backward()

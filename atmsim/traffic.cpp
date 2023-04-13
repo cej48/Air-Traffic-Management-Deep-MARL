@@ -126,7 +126,7 @@ void Traffic::step(Weather *weather)
 std::vector<double> Traffic::get_observation()
 {
     // std::cout<<"in"<<'\n';
-    std::vector<double> ret(7+(N_closest*2));
+    std::vector<double> ret(7+(N_closest*3));
 
     ret.at(0) = this->position[0]/2.5f;
     ret.at(1) = (this->position[1]-51.5)/1.5;
@@ -139,11 +139,13 @@ std::vector<double> Traffic::get_observation()
     for (long unsigned int i=0; i<N_closest;i++){
         // std::cout<<this->closest_distances.at(i)<<'\n';
         if (i>=this->closest.size()){
-            ret.at(2*i+7) = -1;
-            ret.at(2*i+8) = -1;
+            ret.at(3*i+7) = -1;
+            ret.at(3*i+8) = -1;
+            ret.at(3*i+9) = -1;
         }else{
-            ret.at(2*i+7) = this->closest.at(i).first;
-            ret.at(2*i+8) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/2*PI;
+            ret.at(3*i+7) = this->closest.at(i).first/1.2;
+            ret.at(3*i+8) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/(2*PI);
+            ret.at(3*i+9) = (this->closest.at(i).second->position[2]/41000);
         }
     }
     // std::cout<<"out"<<'\n';
