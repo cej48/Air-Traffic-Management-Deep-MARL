@@ -62,7 +62,7 @@ def parse_args():
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.1,
+    parser.add_argument("--exploration-noise", type=float, default=0.2,
         help="the scale of exploration noise")
     parser.add_argument("--learning-starts", type=int, default=5e3,
         help="timestep to start learning")
@@ -125,6 +125,7 @@ class Actor(nn.Module):
 class EnvWrap():
     def __init__(self):
         self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0)
+        self.env.step()
         self.action_space = gym.spaces.Box(low=-1, high=1, shape = (3,))
         self.observation_space = gym.spaces.Box(low=-1000, high=1000, shape  = np.array(self.env.traffic[0].get_observation()).shape)
         self.single_observation_space = self.observation_space
@@ -154,6 +155,7 @@ if __name__ == "__main__":
 
     # env setup
     envs = EnvWrap()
+
     actor = Actor(envs).to(device)
     qf1 = QNetwork(envs).to(device)
     qf2 = QNetwork(envs).to(device)
@@ -211,6 +213,7 @@ if __name__ == "__main__":
         rewards = {}
         terminated = {}
         observation = {}
+        # print(states[list(states)[0]])
 
         if global_step < args.learning_starts:
             for state in states:

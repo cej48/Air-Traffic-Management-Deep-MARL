@@ -90,12 +90,19 @@ void Traffic::adjust_params(){
 
 }
 
+
+void Traffic::clear_nearest()
+{
+    this->closest.clear();
+}
+
 void Traffic::step(Weather *weather)
 {
     // this->reward= 0;
 
     // std::cout<<"rot: "<<this->rate_of_turn<<'\n';
     // std::cout<<"heading: "<<this->heading.value<<"\n\n";
+    // std::cout<<this->closest_distances[0]<<'\n';
     adjust_params();
     this->position[2]+=this->rate_of_climb; //*this->scale_speed;
     this->heading +=this->rate_of_turn; //*this->scale_speed;
@@ -104,7 +111,8 @@ void Traffic::step(Weather *weather)
     this->position[1]+=(cos(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
     this->speed += this->rate_of_speed; //*this->scale_speed;
     verify_constraints();
-    
+    // get_closest_distances();
+
     if(std::isnan(this->position[0])){
         std::cout<<this->speed<<'\n';
         std::cout<<this->position<<'\n';
@@ -117,11 +125,29 @@ void Traffic::step(Weather *weather)
 // pos x, pos y, pos z, heading, 
 std::vector<double> Traffic::get_observation()
 {
+    // std::cout<<"in"<<'\n';
+    std::vector<double> ret(7+(N_closest*2));
 
-    return {this->position[0]/2.5f, (this->position[1]-51.5)/1.5,this->position[2]/41000, 
-            (180-this->heading.value)/180, this->speed/350, this->destination->position[0]/2.5f,
-            (this->destination->position[1]-50)/3};
+    ret.at(0) = this->position[0]/2.5f;
+    ret.at(1) = (this->position[1]-51.5)/1.5;
+    ret.at(2) = this->position[2]/41000;
+    ret.at(3) = (180-this->heading.value)/180;
+    ret.at(4) = this->speed/350;
+    ret.at(5) = this->destination->position[0]/2.5f;
+    ret.at(6) = (this->destination->position[1]-50)/3;
 
+    for (long unsigned int i=0; i<N_closest;i++){
+        // std::cout<<this->closest_distances.at(i)<<'\n';
+        if (i>=this->closest.size()){
+            ret.at(2*i+7) = -1;
+            ret.at(2*i+8) = -1;
+        }else{
+            ret.at(2*i+7) = this->closest.at(i).first;
+            ret.at(2*i+8) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/2*PI;
+        }
+    }
+    // std::cout<<"out"<<'\n';
+    return ret;
 }
 
 void Traffic::set_actions(std::vector<float> actions)

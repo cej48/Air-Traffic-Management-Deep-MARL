@@ -12,8 +12,6 @@ namespace Utils{
     float calculate_distance(Eigen::Vector3f a, Eigen::Vector3f b);
 
     template <class T>
-
-    // Needs copy constructor.
     void deepcopy_pointy_vectors(std::vector<T*>* a, std::vector<T*>* b)
     {
         b->clear();

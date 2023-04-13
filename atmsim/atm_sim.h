@@ -50,6 +50,8 @@ public:
     ATMSim(ATMSim *other);
     ATMSim(ATMSim *other, bool render);
     ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
+    void detect_nearest_traffic(Traffic* traff, float angle, float distance_xy);
+
     int traffic_maximum;
     bool step();
     void reset();
