@@ -24,4 +24,5 @@ namespace Utils{
                 +   pow(a[1] - b[1],2));
     }
 
+
 }

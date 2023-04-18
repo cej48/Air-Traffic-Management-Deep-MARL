@@ -196,8 +196,11 @@ bool ATMInterface::input_handler()
 
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
 
-                    new_center_x = center_fix.x + (mouse_previous.x-event.mouseMove.x)*this->zoom;
-                    new_center_y = center_fix.y + (mouse_previous.y-event.mouseMove.y)*this->zoom;
+                    
+                    new_center_x = (int)(center_fix.x + (mouse_previous.x-event.mouseMove.x)*this->zoom);//%30000;
+                    new_center_y = (int)(center_fix.y + (mouse_previous.y-event.mouseMove.y)*this->zoom);//%30000;
+                    
+                    std::cout<<(mouse_previous.x-event.mouseMove.x)<<'\n';
                     update_view=true;
                 }
             } break;

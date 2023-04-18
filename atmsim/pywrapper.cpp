@@ -21,6 +21,9 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def("reset",  &ATMSim::reset, py::call_guard<py::gil_scoped_release>())
     // .def("get_observation", &ATMSim::get_observations)
     .def_readonly("traffic", &ATMSim::traffic, byref)
+    .def_readonly("total_arrivals", &ATMSim::arrivals_sum, byref)
+    .def_readonly("total_steps", &ATMSim::total_steps, byref)
+    .def_readonly("total_infringements", &ATMSim::total_infringements, byref)
     
     // .def_readonly("observation_space", &ATMSim::observation, byref)
     // .def_readonly("action_space", &ATMSim::action, byref)

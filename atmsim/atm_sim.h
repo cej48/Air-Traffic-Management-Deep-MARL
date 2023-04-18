@@ -18,6 +18,8 @@ class ATMSim{
 
     Atmosphere* environment;
 
+
+
     bool render;
     ATMInterface* interface;
     int traffic_ID=0;
@@ -40,6 +42,10 @@ private:
 
 public:
 
+    int arrivals_sum=0;
+    int total_steps=0;
+    int total_infringements = 0;
+
     void copy_from_other(ATMSim *other);
     void calculate_rewards();
 
@@ -50,6 +56,8 @@ public:
     ATMSim(ATMSim *other);
     ATMSim(ATMSim *other, bool render);
     ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
+    void detect_nearest_traffic(Traffic* traff, float angle, float distance_xy);
+
     int traffic_maximum;
     bool step();
     void reset();

@@ -5,13 +5,18 @@
 #include "weather.h"
 #include <string>
 #include "airport.h"
-// #include "heading.h"
+#include "macro.h"
+#define N_closest 3
 
 class Traffic {
 
     void verify_constraints();
 
     void adjust_params();
+
+    void get_and_sort_closest_distances();
+
+
 
 public:
     int ID;
@@ -23,6 +28,17 @@ public:
     float speed;
     Heading heading;
     Airport* destination; 
+
+
+    Traffic* null_traffic;
+    std::vector<std::pair<float, Traffic*>> closest;
+    // std::vector<float> closest_distances;
+    // // Traffic* closest;
+    // float closest_distance=0;
+
+    // Traffic* second_closest;
+    // float second_closest_distance=0;
+
     std::string callsign;
 
     bool infringement=false;
@@ -49,5 +65,6 @@ public:
 
     std::vector<double>  get_observation();
     void set_actions(std::vector<float> actions);
+    void clear_nearest();
     void step(Weather *weather);
 };

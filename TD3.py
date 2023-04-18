@@ -22,6 +22,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
+load_from_file = True
+
 
 def parse_args():
     # fmt: off
@@ -48,7 +50,7 @@ def parse_args():
         help="the id of the environment")
     parser.add_argument("--total-timesteps", type=int, default=1000000000,
         help="total timesteps of the experiments")
-    parser.add_argument("--learning-rate", type=float, default=3e-4,
+    parser.add_argument("--learning-rate", type=float, default=1e-4,
         help="the learning rate of the optimizer")
     parser.add_argument("--buffer-size", type=int, default=int(1e5),
         help="the replay memory buffer size")
@@ -62,7 +64,7 @@ def parse_args():
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.1,
+    parser.add_argument("--exploration-noise", type=float, default=0.2,
         help="the scale of exploration noise")
     parser.add_argument("--learning-starts", type=int, default=5e3,
         help="timestep to start learning")
@@ -125,6 +127,7 @@ class Actor(nn.Module):
 class EnvWrap():
     def __init__(self):
         self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0)
+        self.env.step()
         self.action_space = gym.spaces.Box(low=-1, high=1, shape = (3,))
         self.observation_space = gym.spaces.Box(low=-1000, high=1000, shape  = np.array(self.env.traffic[0].get_observation()).shape)
         self.single_observation_space = self.observation_space
@@ -144,6 +147,9 @@ if __name__ == "__main__":
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
 
+    with open("output.csv", "w") as file:
+        file.write("step, arrivals_sum, infringement_sum \n")
+
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -154,16 +160,43 @@ if __name__ == "__main__":
 
     # env setup
     envs = EnvWrap()
-    actor = Actor(envs).to(device)
-    qf1 = QNetwork(envs).to(device)
-    qf2 = QNetwork(envs).to(device)
-    qf1_target = QNetwork(envs).to(device)
-    qf2_target = QNetwork(envs).to(device)
-    target_actor = Actor(envs).to(device)
 
-    target_actor.load_state_dict(actor.state_dict())
-    qf1_target.load_state_dict(qf1.state_dict())
-    qf2_target.load_state_dict(qf2.state_dict())
+    if load_from_file:
+        actor = Actor(envs)
+        actor.load_state_dict(torch.load("./models/actor.pt"))
+        actor.to(device)
+
+        target_actor = Actor(envs)
+        target_actor.load_state_dict(torch.load("./models/actor_targ.pt"))
+        target_actor.to(device)
+
+        qf1 = QNetwork(envs)
+        qf1.load_state_dict(torch.load("./models/qf1.pt"))
+        qf1.to(device)
+
+        qf2 = QNetwork(envs)
+        qf2.load_state_dict(torch.load("./models/qf2.pt"))
+        qf2.to(device)
+
+        qf2_target = QNetwork(envs)
+        qf2_target.load_state_dict(torch.load("./models/qf2_targ.pt"))
+        qf2_target.to(device)
+
+        qf1_target = QNetwork(envs)
+        qf1_target.load_state_dict(torch.load("./models/qf1_targ.pt"))
+        qf1_target.to(device)
+    
+    else:
+        actor = Actor(envs).to(device)
+        qf1 = QNetwork(envs).to(device)
+        qf2 = QNetwork(envs).to(device)
+        qf1_target = QNetwork(envs).to(device)
+        qf2_target = QNetwork(envs).to(device)
+        target_actor = Actor(envs).to(device)
+
+        target_actor.load_state_dict(actor.state_dict())
+        qf1_target.load_state_dict(qf1.state_dict())
+        qf2_target.load_state_dict(qf2.state_dict())
 
     q_optimizer = optim.Adam(list(qf1.parameters()) + list(qf2.parameters()), lr=args.learning_rate)
     qf1_optimizer = optim.Adam(list(qf1.parameters()), lr = args.learning_rate)
@@ -211,6 +244,7 @@ if __name__ == "__main__":
         rewards = {}
         terminated = {}
         observation = {}
+        # print(states[list(states)[0]])
 
         if global_step < args.learning_starts:
             for state in states:
@@ -241,10 +275,12 @@ if __name__ == "__main__":
 
         for traffic in states:
             terminated[traffic] = traffic.terminated
+        
 
         for traffic in states:
-            rewards[traffic] =35+(traffic.reward)
+            rewards[traffic] =(65+(traffic.reward))#/10
             # print(rewards  [traffic])
+
         observation = {i : i.get_observation() for i in envs.env.traffic}
         
         for traffic in states:
@@ -268,10 +304,14 @@ if __name__ == "__main__":
                 # print(qf1_next_target)
 
                 min_qf_next_target = torch.min(qf1_next_target, qf2_next_target)
+                # print(data.dones)
+                # print(data.rewards)
                 next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (min_qf_next_target).view(-1)
                 # print(next_q_value)
 
+            # print(next_q_value)
             qf1_a_values = qf1(data.observations, data.actions).view(-1)
+            # print(qf1_a_values)
             qf2_a_values = qf2(data.observations, data.actions).view(-1)
 
 
@@ -279,6 +319,7 @@ if __name__ == "__main__":
             qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
 
             qf_loss = qf1_loss + qf2_loss
+            # print(qf_loss)
 
             q_optimizer.zero_grad()
             qf_loss.backward()
@@ -299,6 +340,16 @@ if __name__ == "__main__":
                     target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
 
         if global_step % 100 == 0:
+            if global_step % 500==0:
+                with open("output.csv", "a+") as file:
+                    file.write(f"{envs.env.total_steps},{envs.env.total_arrivals}, {envs.env.total_infringements}\n")
+            if global_step % 10000 ==0:
+                torch.save(qf1.state_dict(), "./models/qf1.pt")
+                torch.save(qf2.state_dict(), "./models/qf2.pt")
+                torch.save(qf1_target.state_dict(), "./models/qf1_targ.pt")
+                torch.save(qf2_target.state_dict(), "./models/qf2_targ.pt")
+                torch.save(actor.state_dict(), "./models/actor.pt")
+                torch.save(target_actor.state_dict(), "./models/actor_targ.pt")
 
             end_time = time.time()
             print(f"Time: {end_time-start_time}")
