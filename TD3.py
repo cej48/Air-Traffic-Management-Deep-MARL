@@ -22,6 +22,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
+load_from_file = True
+
 
 def parse_args():
     # fmt: off
@@ -62,7 +64,7 @@ def parse_args():
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.1,
+    parser.add_argument("--exploration-noise", type=float, default=0.2,
         help="the scale of exploration noise")
     parser.add_argument("--learning-starts", type=int, default=5e3,
         help="timestep to start learning")
@@ -145,6 +147,9 @@ if __name__ == "__main__":
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
 
+    with open("output.csv", "w") as file:
+        file.write("step, arrivals_sum, infringement_sum \n")
+
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -156,16 +161,42 @@ if __name__ == "__main__":
     # env setup
     envs = EnvWrap()
 
-    actor = Actor(envs).to(device)
-    qf1 = QNetwork(envs).to(device)
-    qf2 = QNetwork(envs).to(device)
-    qf1_target = QNetwork(envs).to(device)
-    qf2_target = QNetwork(envs).to(device)
-    target_actor = Actor(envs).to(device)
+    if load_from_file:
+        actor = Actor(envs)
+        actor.load_state_dict(torch.load("./models/actor.pt"))
+        actor.to(device)
 
-    target_actor.load_state_dict(actor.state_dict())
-    qf1_target.load_state_dict(qf1.state_dict())
-    qf2_target.load_state_dict(qf2.state_dict())
+        target_actor = Actor(envs)
+        target_actor.load_state_dict(torch.load("./models/actor_targ.pt"))
+        target_actor.to(device)
+
+        qf1 = QNetwork(envs)
+        qf1.load_state_dict(torch.load("./models/qf1.pt"))
+        qf1.to(device)
+
+        qf2 = QNetwork(envs)
+        qf2.load_state_dict(torch.load("./models/qf2.pt"))
+        qf2.to(device)
+
+        qf2_target = QNetwork(envs)
+        qf2_target.load_state_dict(torch.load("./models/qf2_targ.pt"))
+        qf2_target.to(device)
+
+        qf1_target = QNetwork(envs)
+        qf1_target.load_state_dict(torch.load("./models/qf1_targ.pt"))
+        qf1_target.to(device)
+    
+    else:
+        actor = Actor(envs).to(device)
+        qf1 = QNetwork(envs).to(device)
+        qf2 = QNetwork(envs).to(device)
+        qf1_target = QNetwork(envs).to(device)
+        qf2_target = QNetwork(envs).to(device)
+        target_actor = Actor(envs).to(device)
+
+        target_actor.load_state_dict(actor.state_dict())
+        qf1_target.load_state_dict(qf1.state_dict())
+        qf2_target.load_state_dict(qf2.state_dict())
 
     q_optimizer = optim.Adam(list(qf1.parameters()) + list(qf2.parameters()), lr=args.learning_rate)
     qf1_optimizer = optim.Adam(list(qf1.parameters()), lr = args.learning_rate)
@@ -309,6 +340,16 @@ if __name__ == "__main__":
                     target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
 
         if global_step % 100 == 0:
+            if global_step % 500==0:
+                with open("output.csv", "a+") as file:
+                    file.write(f"{envs.env.total_steps},{envs.env.total_arrivals}, {envs.env.total_infringements}\n")
+            if global_step % 10000 ==0:
+                torch.save(qf1.state_dict(), "./models/qf1.pt")
+                torch.save(qf2.state_dict(), "./models/qf2.pt")
+                torch.save(qf1_target.state_dict(), "./models/qf1_targ.pt")
+                torch.save(qf2_target.state_dict(), "./models/qf2_targ.pt")
+                torch.save(actor.state_dict(), "./models/actor.pt")
+                torch.save(target_actor.state_dict(), "./models/actor_targ.pt")
 
             end_time = time.time()
             print(f"Time: {end_time-start_time}")

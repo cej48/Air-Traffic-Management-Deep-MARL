@@ -58,16 +58,20 @@ void Traffic::verify_constraints()
 {
     if (this->speed<140){
         this->speed = 140;
+        this->rate_of_speed = 0;
     }
     else if (this->speed>350){
         this->speed = 350;
+        this->rate_of_speed = 0;
     }
     
     if (this->position[2]<250){
         this->position[2] = 250;
+        this->rate_of_climb = 0;
     }
     else if (this->position[2]>41000){
         this->position[2] = 41000;
+        this->rate_of_climb=0;
     }
 }
 
@@ -126,7 +130,9 @@ void Traffic::step(Weather *weather)
 std::vector<double> Traffic::get_observation()
 {
     // std::cout<<"in"<<'\n';
-    std::vector<double> ret(7+(N_closest*3));
+
+    float base_size = 7;
+    std::vector<double> ret(base_size+(N_closest*3));
 
     ret.at(0) = this->position[0]/2.5f;
     ret.at(1) = (this->position[1]-51.5)/1.5;
@@ -136,16 +142,22 @@ std::vector<double> Traffic::get_observation()
     ret.at(5) = this->destination->position[0]/2.5f;
     ret.at(6) = (this->destination->position[1]-50)/3;
 
-    for (long unsigned int i=0; i<N_closest;i++){
+    // Give current target states, used so that the network can consider the fact that 
+    // a change has negative reward... So that the network doesn't issue unnecessary commands.
+    // ret.at(7) = (180-this->target_heading)/180;
+    // ret.at(8) = (this->target_altitude/41000);
+    // ret.at(9) = (this->target_speed/350);
+
+    for (long unsigned int i=0; i<N_closest; i++){
         // std::cout<<this->closest_distances.at(i)<<'\n';
         if (i>=this->closest.size()){
-            ret.at(3*i+7) = -1;
-            ret.at(3*i+8) = -1;
-            ret.at(3*i+9) = -1;
+            ret.at((3*i)+base_size) = -1;
+            ret.at((3*i)+base_size+1) = -1;
+            ret.at((3*i)+base_size+2) = -1;
         }else{
-            ret.at(3*i+7) = this->closest.at(i).first/1.2;
-            ret.at(3*i+8) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/(2*PI);
-            ret.at(3*i+9) = (this->closest.at(i).second->position[2]/41000);
+            ret.at((3*i)+base_size) = this->closest.at(i).first/1.2;
+            ret.at((3*i)+base_size+1) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/(2*PI);
+            ret.at((3*i)+base_size+2) = (this->closest.at(i).second->position[2]/41000);
         }
     }
     // std::cout<<"out"<<'\n';
@@ -156,6 +168,24 @@ void Traffic::set_actions(std::vector<float> actions)
 {
 
     // std::cout<<actions[0]<<'\n';
+    this->reward=0;
+
+    // if ((actions[0] < target_heading -1 || actions[0] > target_heading+1)
+    // ){
+    //     // this->target_heading = actions[0];
+    //     this->reward -= 1;
+    // }
+    // if ((actions[1] < target_altitude -1 || actions[1] > target_altitude+1)
+    // ){
+    //     // this->target_altitude = actions[1];
+    //     this->reward -= 1;
+    // }
+    // if ((actions[2] < target_speed -1 || actions[2] > target_speed+1)
+    // ){
+    //     // this->target_speed = actions[2];
+    //     this->reward -= 1;
+    // }
+
     this->target_heading = actions[0];
     this->target_altitude = actions[1];
     this->target_speed = actions[2];

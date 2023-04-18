@@ -6,7 +6,7 @@
 #include <string>
 #include "airport.h"
 #include "macro.h"
-#define N_closest 1
+#define N_closest 3
 
 class Traffic {
 

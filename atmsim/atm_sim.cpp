@@ -85,6 +85,10 @@ void ATMSim::detect_closure_infringement()
             // detect_nearest_traffic(this->traffic.at(i+k), 40.f, distance_xy);
            
             if (distance_xy<MILE_5 && distance_z<900){ // 5 miles
+                std::cout<<"Infringement"<<'\n';
+                this->total_infringements++;
+                this->traffic.at(i)->terminated= true;
+                this->traffic.at(i+k)->terminated = true;
                 this->traffic.at(i)->infringement = true;
                 this->traffic.at(i+k)->infringement = true;
             }        
@@ -98,23 +102,26 @@ void ATMSim::detect_closure_infringement()
 void ATMSim::detect_traffic_arrival()
 {
     for (unsigned int i=0; i<this->traffic.size(); i++){
-
+        float distance = Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position);
+        
         // first check traffic is pointing in the correct direction.
-        if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < 3 * MILE_5 
-            && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<10000){
-            this->traffic[i]->reward+=10;
-        }
+        // Superseeded by efficiency reward.
+        // if (abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<1000 + distance*10000){
+
+        //     this->traffic[i]->reward+=10;
+        // }
 
         if (this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
             // std::cout<<this->traffic[i]->heading.value<<'\n';
-            if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5 
+            if (distance < MILE_5 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2500){
-                this->traffic[i]->reward+=30;
+                this->traffic[i]->reward+=100;
             }
-            if (Utils::calculate_distance(this->traffic[i]->position, this->traffic[i]->destination->position) < MILE_5/2 
+            if (distance < MILE_5/2 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<1500){
-                this->traffic[i]->reward+=300;
+                this->traffic[i]->reward+=600;
                 std::cout<<"Arrived"<<'\n';
+                this->arrivals_sum++;
                 this->traffic[i]->silent_terminated = true;
 
             }
@@ -194,9 +201,23 @@ void ATMSim::copy_from_other(ATMSim *other)
 void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
+
+        float thrust=2; // rate of climb is 0, holding alt.
+
         if (traff->infringement){
-            traff->reward-=30;
+            traff->reward-=50;
         }
+
+        if (traff->rate_of_climb <-0.5){
+            thrust = 0;
+        }
+        else if (traff->rate_of_climb >0.5){
+            thrust = 5;
+        }
+        // std::cout<<traff->rate_of_climb<<'\n';
+        float altitude_discount = 1-(traff->position[2]/60000);
+        // std::cout<<altitude_discount*thrust<<'\n';
+        traff->reward-= altitude_discount*thrust; // higher altitude, less drag, climbing... more thrust.
         traff->reward-= 10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
 
         sum+=traff->reward;
@@ -207,7 +228,8 @@ bool ATMSim::step()
     
     bool return_val = 1;
     Weather weather = Weather(1,2,3);
-    count++;
+    this->count++;
+    this->total_steps++;
 
     if (!skip_render || count%60==0){
         for (int i=0; i<acceleration.value;i++){
@@ -215,8 +237,8 @@ bool ATMSim::step()
         }
     }
     for (unsigned int i=0; i<this->traffic.size(); i++){
-        this->traffic[i]->reward=0;
-
+        // this->traffic[i]->reward=0;
+        // reward 0 here only if step called after each traffi cset_actions()
         if (this->traffic[i]->terminated || this->traffic[i]->silent_terminated || (this->count - this->traffic[i]->start_count) > this->traffic_timeout){
             delete traffic[i];
             this->traffic.erase(traffic.begin()+i);
