@@ -22,7 +22,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-load_from_file = True
+load_from_file = False
 
 
 def parse_args():
@@ -147,9 +147,6 @@ if __name__ == "__main__":
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
 
-    with open("output.csv", "w") as file:
-        file.write("step, arrivals_sum, infringement_sum \n")
-
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -162,6 +159,8 @@ if __name__ == "__main__":
     envs = EnvWrap()
 
     if load_from_file:
+        args.learning_starts=0
+
         actor = Actor(envs)
         actor.load_state_dict(torch.load("./models/actor.pt"))
         actor.to(device)
@@ -187,6 +186,8 @@ if __name__ == "__main__":
         qf1_target.to(device)
     
     else:
+        with open("output.csv", "w") as file:
+            file.write("step, arrivals_sum, infringement_sum \n")
         actor = Actor(envs).to(device)
         qf1 = QNetwork(envs).to(device)
         qf2 = QNetwork(envs).to(device)
