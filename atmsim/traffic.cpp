@@ -132,7 +132,7 @@ std::vector<double> Traffic::get_observation()
     // std::cout<<"in"<<'\n';
 
     float base_size = 7;
-    std::vector<double> ret(base_size+(N_closest*3));
+    std::vector<double> ret(base_size+(N_closest*6));
 
     ret.at(0) = this->position[0]/2.5f;
     ret.at(1) = (this->position[1]-51.5)/1.5;
@@ -154,10 +154,16 @@ std::vector<double> Traffic::get_observation()
             ret.at((3*i)+base_size) = -1;
             ret.at((3*i)+base_size+1) = -1;
             ret.at((3*i)+base_size+2) = -1;
+            ret.at((3*i)+base_size+3) = -1;
+            ret.at((3*i)+base_size+4) = -1;
+            ret.at((3*i)+base_size+5) = -1;
         }else{
-            ret.at((3*i)+base_size) = this->closest.at(i).first/1.2;
-            ret.at((3*i)+base_size+1) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/(2*PI);
-            ret.at((3*i)+base_size+2) = (this->closest.at(i).second->position[2]/41000);
+            ret.at((6*i)+base_size) = this->closest.at(i).first/1.2;
+            ret.at((6*i)+base_size+1) = (Utils::calculate_angle(this->position, this->closest.at(i).second->position))/(2*PI);
+            ret.at((6*i)+base_size+2) = (this->closest.at(i).second->position[2]/41000);
+            ret.at((6*i) + base_size+3) = ((180 - this->closest.at(i).second->heading.value)/180);
+            ret.at((6*i) + base_size+4) = (this->closest.at(i).second->speed/350);
+            ret.at((6*i) + base_size+5) = (this->closest.at(i).second->target_altitude-this->closest.at(i).second->target_altitude)/41000;
         }
     }
     // std::cout<<"out"<<'\n';

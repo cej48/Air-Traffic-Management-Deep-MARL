@@ -265,6 +265,15 @@ bool ATMSim::step()
         this->spawn_aircraft();
     }
     this->calculate_rewards();
+    // Optional, this adds cooperation reward.
+    for (long unsigned int i =0; i<this->traffic.size(); i++){
+        float sum=0;
+        for (int k=0; k<N_closest; k++){
+            sum+=(this->traffic.at(i)->reward);
+        }
+        this->traffic.at(i)->reward+=(sum/N_closest)*0.2;
+    }
+
 
     return return_val;
 }
