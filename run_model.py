@@ -82,10 +82,10 @@ class QNetwork(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod() + np.prod(env.single_action_space.shape), 256)
-        self.fc2 = nn.Linear(256, 512)
+        self.fc2 = nn.Linear(256, 1024)
 
-        self.fc3 = nn.Linear(512, 512)
-        self.fc4 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(1024, 1024)
+        self.fc4 = nn.Linear(1024, 256)
         self.fc5 = nn.Linear(256, 1)
 
     def forward(self, x, a):
@@ -102,9 +102,9 @@ class Actor(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod(), 256)
-        self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 512)
-        self.fc4 = nn.Linear(512, 256)
+        self.fc2 = nn.Linear(256, 1024)
+        self.fc3 = nn.Linear(1024, 1024)
+        self.fc4 = nn.Linear(1024, 256)
         self.fc_mu = nn.Linear(256, np.prod(env.single_action_space.shape))
         # action rescaling
         self.register_buffer(
@@ -139,15 +139,7 @@ class EnvWrap():
 
 if __name__ == "__main__":
     args = parse_args()
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
 
-    writer = SummaryWriter(f"runs/{run_name}")
-    writer.add_text(
-        "hyperparameters",
-        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-    )
-
-    # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -161,32 +153,6 @@ if __name__ == "__main__":
     actor.load_state_dict(torch.load("./models/actor.pt"))
     actor.to(device)
 
-    target_actor = Actor(envs)
-    target_actor.load_state_dict(torch.load("./models/actor_targ.pt"))
-    target_actor.to(device)
-
-    qf1 = QNetwork(envs)
-    qf1.load_state_dict(torch.load("./models/qf1.pt"))
-    qf1.to(device)
-
-    qf2 = QNetwork(envs)
-    qf2.load_state_dict(torch.load("./models/qf2.pt"))
-    qf2.to(device)
-
-    qf2_target = QNetwork(envs)
-    qf2_target.load_state_dict(torch.load("./models/qf2_targ.pt"))
-    qf2_target.to(device)
-
-    qf1_target = QNetwork(envs)
-    qf1_target.load_state_dict(torch.load("./models/qf1_targ.pt"))
-    qf1_target.to(device)
-
-
-    q_optimizer = optim.Adam(list(qf1.parameters()) + list(qf2.parameters()), lr=args.learning_rate)
-    qf1_optimizer = optim.Adam(list(qf1.parameters()), lr = args.learning_rate)
-    qf2_optimizer = optim.Adam(list(qf2.parameters()), lr = args.learning_rate)
-    actor_optimizer = optim.Adam(list(actor.parameters()), lr=args.learning_rate)
-
     envs.single_observation_space.dtype = np.float32
     obs = envs.reset()
 
@@ -197,7 +163,7 @@ if __name__ == "__main__":
         # ALGO LOGIC: put action logic here
 
         states = {i : i.get_observation() for i in envs.env.traffic}  
-
+        actions={}
         with torch.no_grad():
             for state in states:
                 action = actor(torch.Tensor(states[state]).to(device))
@@ -212,7 +178,6 @@ if __name__ == "__main__":
             this_action[2] = 245 + (105*this_action[2])
             traffic.set_actions(this_action)
 
-        final_terminated = not envs.step()
 
+        final_terminated = not envs.step()
     envs.close()
-    writer.close()
