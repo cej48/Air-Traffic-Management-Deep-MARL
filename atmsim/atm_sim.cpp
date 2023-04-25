@@ -111,7 +111,7 @@ void ATMSim::detect_traffic_arrival()
         //     this->traffic[i]->reward+=10;
         // }
 
-        if (this->traffic[i]->heading.in_range(60, this->traffic[i]->destination->runway_heading.value)){
+        if (this->traffic[i]->heading.in_range(30, this->traffic[i]->destination->runway_heading.value)){
             // std::cout<<this->traffic[i]->heading.value<<'\n';
             if (distance < MILE_5 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2500){
@@ -256,22 +256,28 @@ bool ATMSim::step()
     );
     this->detect_traffic_arrival();
     this->verify_boundary_constraints();
+    while (this->traffic.size()<this->max_traffic_count){
+        this->spawn_aircraft();
+    }
+
     this->detect_closure_infringement();
     for (long unsigned int i =0; i<this->traffic.size(); i++){
         std::sort(this->traffic.at(i)->closest.begin(),this->traffic.at(i)->closest.end());
     }
 
-    while (this->traffic.size()<this->max_traffic_count){
-        this->spawn_aircraft();
-    }
     this->calculate_rewards();
     // Optional, this adds cooperation reward.
+    float rewards[this->traffic.size()];
     for (long unsigned int i =0; i<this->traffic.size(); i++){
         float sum=0;
         for (int k=0; k<N_closest; k++){
-            sum+=(this->traffic.at(i)->reward);
+            sum+=(this->traffic.at(i)->closest.at(k).second->reward);
         }
-        this->traffic.at(i)->reward+=(sum/N_closest)*0.2;
+        rewards[i] = (sum/N_closest)*0.2;
+        // this->traffic.at(i)->reward+=(sum/N_closest)*0.2;
+    }
+    for (long unsigned int i =0; i<this->traffic.size(); i++){
+        this->traffic.at(i)->reward+=rewards[i];
     }
 
 
@@ -280,20 +286,9 @@ bool ATMSim::step()
 
 void ATMSim::reset()
 {   
-    // for (Traffic* i : this->traffic){
-    //     delete i;
-    // }
-    // // std::cout<<this->traffic[0]->position<<'\n';
-    // // std::cout<<"Fuckery"<<'\n';
-    // // std::cout<<traffic.empty()<<'\n';
-    // this->traffic.clear();
 
 
     while (this->traffic.size()<this->max_traffic_count){
         this->spawn_aircraft();
     }
 }
-
-// Action passer protocol:
-// TARGET HEADING | TARGET_ALTITUDE | TARGET_SPEED 
-

@@ -155,6 +155,12 @@ bool ATMInterface::input_handler()
                                 return 0;
                             }
                         }break;
+                        case (sf::Keyboard::T):{
+                            this->display_trails = !this->display_trails;
+                        }break;
+                        case (sf::Keyboard::Y):{
+                            this->display_mode = !this->display_mode;
+                        }break;
                         case (sf::Keyboard::Right):
                         {
                             *this->acceleration-=1;
@@ -310,15 +316,50 @@ void ATMInterface::draw_traffic()
         }
         
     }
+
+void ATMInterface::draw_trails(){
+    for (unsigned int i = 0; i < traffic->size(); i++) {
+        sf::Color color;
+        // readable and lazy
+        if (display_mode){
+            if (traffic->at(i)->destination->code == "EGKK"){
+                color = this->airport_0;
+            }else if(traffic->at(i)->destination->code == "EGLL"){
+                color = this->airport_1;
+            }else if(traffic->at(i)->destination->code == "EGLC"){
+                color = this->airport_2;
+            }else if(traffic->at(i)->destination->code == "EGGW"){
+                color = this->airport_3;
+            }else if(traffic->at(i)->destination->code == "EGMC"){
+                color = this->airport_4;
+            }else if(traffic->at(i)->destination->code == "EGSS"){
+                color = this->airport_5;
+            }}
+        else {
+            // std::cout<<255*(traffic->at(i)->position[2]/41000)<<" " <<  255*(1-(traffic->at(i)->position[2]/41000)) << '\n';
+            color = sf::Color(0, 512*(traffic->at(i)->position[2]/30000), 512*(1-(traffic->at(i)->position[2]/30000)));
+        }
+        sf::RectangleShape rectangle(sf::Vector2f(10, 10));
+        rectangle.setFillColor(color);
+        rectangle.setPosition(traffic->at(i)->position[0]*this->scale_factor, traffic->at(i)->position[1]*-1*this->scale_factor);
+        window->draw(rectangle);    
+    }
+}
 bool ATMInterface::step()
 {
     window->setView(this->scene_view);
 
-    window->clear();
+    if (!this->display_trails){
+        window->clear();
+    }
     bool returnval = this->input_handler();
     this->draw_airports();
-    this->draw_traffic();
 
+    if (this->display_trails){
+        this->draw_trails();
+    }else{
+        this->draw_traffic();
+    }
     draw_gui(this->input_text);
 
     window->display();
