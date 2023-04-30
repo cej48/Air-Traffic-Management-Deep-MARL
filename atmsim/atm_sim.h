@@ -55,7 +55,7 @@ public:
     std::vector<float> action = std::vector<float>(10);
     ATMSim(ATMSim *other);
     ATMSim(ATMSim *other, bool render);
-    ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length);
+    ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length, int max_traffic_count);
     void detect_nearest_traffic(Traffic* traff, float angle, float distance_xy);
 
     int traffic_maximum;

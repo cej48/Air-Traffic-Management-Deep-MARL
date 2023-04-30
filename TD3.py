@@ -52,21 +52,19 @@ def parse_args():
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=1e-4,
         help="the learning rate of the optimizer")
-    parser.add_argument("--buffer-size", type=int, default=int(1e5),
+    parser.add_argument("--buffer-size", type=int, default=int(1e6),
         help="the replay memory buffer size")
     parser.add_argument("--gamma", type=float, default=0.99,
         help="the discount factor gamma")
     parser.add_argument("--tau", type=float, default=0.005,
         help="target smoothing coefficient (default: 0.005)")
-    # parser.add_argument("--batch-size", type=int, default=512,
-    #     help="the batch size of sample from the reply memory")
     parser.add_argument("--batch-size", type=int, default=512,
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
     parser.add_argument("--exploration-noise", type=float, default=0.2,
         help="the scale of exploration noise")
-    parser.add_argument("--learning-starts", type=int, default=5e3,
+    parser.add_argument("--learning-starts", type=int, default=50e3,
         help="timestep to start learning")
     parser.add_argument("--policy-frequency", type=int, default=2,
         help="the frequency of training policy (delayed)")
@@ -82,10 +80,10 @@ class QNetwork(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod() + np.prod(env.single_action_space.shape), 256)
-        self.fc2 = nn.Linear(256, 1024)
+        self.fc2 = nn.Linear(256, 512)
 
-        self.fc3 = nn.Linear(1024, 1024)
-        self.fc4 = nn.Linear(1024, 256)
+        self.fc3 = nn.Linear(512, 512)
+        self.fc4 = nn.Linear(512, 256)
         self.fc5 = nn.Linear(256, 1)
 
     def forward(self, x, a):
@@ -102,9 +100,9 @@ class Actor(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod(), 256)
-        self.fc2 = nn.Linear(256, 1024)
-        self.fc3 = nn.Linear(1024, 1024)
-        self.fc4 = nn.Linear(1024, 256)
+        self.fc2 = nn.Linear(256, 512)
+        self.fc3 = nn.Linear(512, 512)
+        self.fc4 = nn.Linear(512, 256)
         self.fc_mu = nn.Linear(256, np.prod(env.single_action_space.shape))
         # action rescaling
         self.register_buffer(
@@ -126,7 +124,7 @@ class Actor(nn.Module):
 
 class EnvWrap():
     def __init__(self):
-        self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0)
+        self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0,25)
         self.env.step()
         self.action_space = gym.spaces.Box(low=-1, high=1, shape = (3,))
         self.observation_space = gym.spaces.Box(low=-1000, high=1000, shape  = np.array(self.env.traffic[0].get_observation()).shape)
@@ -139,13 +137,7 @@ class EnvWrap():
 
 if __name__ == "__main__":
     args = parse_args()
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
 
-    writer = SummaryWriter(f"runs/{run_name}")
-    writer.add_text(
-        "hyperparameters",
-        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-    )
 
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
@@ -187,7 +179,7 @@ if __name__ == "__main__":
     
     else:
         with open("output.csv", "w") as file:
-            file.write("step, arrivals_sum, infringement_sum \n")
+            file.write("step, arrivals_sum, infringement_sum, reward \n")
         actor = Actor(envs).to(device)
         qf1 = QNetwork(envs).to(device)
         qf2 = QNetwork(envs).to(device)
@@ -224,7 +216,7 @@ if __name__ == "__main__":
     actions = {i : [] for i in envs.env.traffic}
     rewards = {i : 0 for i in envs.env.traffic}
     terminated = {i : False for i in envs.env.traffic}
-
+    reward = 0
     noise = torch.normal(0, actor.action_scale * args.exploration_noise)
     # for each step
     for global_step in range(args.total_timesteps):
@@ -279,7 +271,8 @@ if __name__ == "__main__":
         
 
         for traffic in states:
-            rewards[traffic] =(65+(traffic.reward))#/10
+            reward+=traffic.reward
+            rewards[traffic] = 65 + ((traffic.reward))#/10
             # print(rewards  [traffic])
 
         observation = {i : i.get_observation() for i in envs.env.traffic}
@@ -289,7 +282,7 @@ if __name__ == "__main__":
         
         states = observation
         if global_step > args.learning_starts:
-
+            # for i in range(5):
             data = buffer.sample(args.batch_size)
             with torch.no_grad():
                 clipped_noise = (torch.randn_like(data.actions, device=device) * args.policy_noise).clamp(
@@ -343,7 +336,8 @@ if __name__ == "__main__":
         if global_step % 100 == 0:
             if global_step % 500==0:
                 with open("output.csv", "a+") as file:
-                    file.write(f"{envs.env.total_steps},{envs.env.total_arrivals}, {envs.env.total_infringements}\n")
+                    file.write(f"{envs.env.total_steps},{envs.env.total_arrivals}, {envs.env.total_infringements}, {reward}\n")
+                    reward=0
             if global_step % 10000 ==0:
                 torch.save(qf1.state_dict(), "./models/qf1.pt")
                 torch.save(qf2.state_dict(), "./models/qf2.pt")
