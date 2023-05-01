@@ -14,7 +14,7 @@ PYBIND11_MODULE(PyATMSim, m) {
     m.doc() = "optional module docstring";
 
     py::class_<ATMSim>(m, "ATMSim")
-    .def(py::init<std::string, std::string, bool, int, float>())
+    .def(py::init<std::string, std::string, bool, int, float, int>())
     .def(py::init<ATMSim*, bool>())
     .def("step", &ATMSim::step, py::call_guard<py::gil_scoped_release>())
     .def("copy_from_other", &ATMSim::copy_from_other)

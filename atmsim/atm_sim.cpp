@@ -21,8 +21,9 @@ ATMSim::ATMSim(ATMSim *other, bool render)
     this->count = other->count;
 }
 
-ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length)
+ATMSim::ATMSim(std::string environment_meta, std::string airport_information, bool render, int framerate, float frame_length, int max_traffic_count)
 {
+    this->max_traffic_count = max_traffic_count;
     this->framerate = framerate;
     this->frame_length = frame_length;
 
@@ -117,7 +118,7 @@ void ATMSim::detect_traffic_arrival()
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2500){
                 this->traffic[i]->reward+=100;
             }
-            if (distance < MILE_5/2 
+            if (this->traffic[i]->speed < 160 && distance < MILE_5/2 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<1500){
                 this->traffic[i]->reward+=600;
                 std::cout<<"Arrived"<<'\n';
@@ -218,8 +219,16 @@ void ATMSim::calculate_rewards(){
         float altitude_discount = 1-(traff->position[2]/60000);
         // std::cout<<altitude_discount*thrust<<'\n';
         traff->reward-= altitude_discount*thrust; // higher altitude, less drag, climbing... more thrust.
-        traff->reward-= 10*abs(Utils::calculate_distance(traff->position, traff->destination->position));
-
+        float distance = Utils::calculate_distance(traff->position, traff->destination->position);
+        if (distance < MILE_5 && traff->speed < 170){
+            traff->reward+=10;
+        } 
+        if (distance > 2*MILE_5){
+            traff->reward-= 10*distance;
+        }
+        // else{
+        //     traff->reward-= 2*10*MILE_5;
+        // }
         sum+=traff->reward;
     }
 }
@@ -269,17 +278,17 @@ bool ATMSim::step()
     // Optional, this adds cooperation reward.
     float rewards[this->traffic.size()];
     for (long unsigned int i =0; i<this->traffic.size(); i++){
+        
         float sum=0;
         for (int k=0; k<N_closest; k++){
             sum+=(this->traffic.at(i)->closest.at(k).second->reward);
         }
-        rewards[i] = (sum/N_closest)*0.2;
+        rewards[i] = (sum/N_closest)*0.05;
         // this->traffic.at(i)->reward+=(sum/N_closest)*0.2;
     }
     for (long unsigned int i =0; i<this->traffic.size(); i++){
         this->traffic.at(i)->reward+=rewards[i];
     }
-
 
     return return_val;
 }
