@@ -75,6 +75,8 @@ void ATMSim::detect_closure_infringement()
         this->traffic.at(i)->infringement=false;
         this->traffic.at(i)->clear_nearest();
     }
+    // bool set_i= false;
+    // bool set_k;
     for (unsigned int i = 0; i < this->traffic.size(); i++){
         for (int k = j; k>0; k--){
             float distance_xy = Utils::calculate_distance(this->traffic.at(i)->position, this->traffic.at(i+k)->position);
@@ -85,13 +87,24 @@ void ATMSim::detect_closure_infringement()
             // detect_nearest_traffic(this->traffic.at(i), 40.f, distance_xy);
             // detect_nearest_traffic(this->traffic.at(i+k), 40.f, distance_xy);
            
+
+            if (distance_xy<1.3*MILE_5 && distance_z<1.3*900){ // 5 miles
+
+                this->traffic.at(i+k)->reward-=termination_reward/2;
+                this->traffic.at(k)->reward-=termination_reward/2;
+            }        
+
             if (distance_xy<MILE_5 && distance_z<900){ // 5 miles
-                std::cout<<"Infringement"<<'\n';
+                // std::cout<<"Infringement"<<'\n';
+                // if (!this->traffic.at(i)->infringement && !this->traffic.at(i+k)->infringement){
                 this->total_infringements++;
-                this->traffic.at(i)->terminated= true;
-                this->traffic.at(i+k)->terminated = true;
+                // }
+                // this->traffic.at(i)->terminated= true;
+                // this->traffic.at(i+k)->terminated = true;
                 this->traffic.at(i)->infringement = true;
                 this->traffic.at(i+k)->infringement = true;
+                this->traffic.at(i+k)->reward-=termination_reward;
+                this->traffic.at(k)->reward-=termination_reward;
             }        
         }
         j--;
@@ -112,18 +125,21 @@ void ATMSim::detect_traffic_arrival()
         //     this->traffic[i]->reward+=10;
         // }
 
-        if (this->traffic[i]->heading.in_range(30, this->traffic[i]->destination->runway_heading.value)){
+        if (this->traffic[i]->heading.in_range(30, this->traffic[i]->destination->runway_heading.value)
+        && this->traffic[i]->destination_hdg.in_range(30, this->traffic[i]->heading.value)
+        ){
             // std::cout<<this->traffic[i]->heading.value<<'\n';
-            if (distance < MILE_5 
-                && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2500){
-                this->traffic[i]->reward+=100;
+            if (distance < MILE_5*2 
+                && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<3000){
+                this->traffic[i]->reward+=20;
             }
-            if (this->traffic[i]->speed < 160 && distance < MILE_5/2 
-                && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<1500){
-                this->traffic[i]->reward+=600;
+            if (this->traffic[i]->speed < 160 && distance < MILE_5 
+                && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2000){
+                this->traffic[i]->reward+=100;
                 std::cout<<"Arrived"<<'\n';
                 this->arrivals_sum++;
-                this->traffic[i]->silent_terminated = true;
+                this->traffic[i]->terminated=true;
+                // this->traffic[i]->silent_terminated = true;
 
             }
         }
@@ -144,7 +160,8 @@ void ATMSim::verify_boundary_constraints(){
         {
 
             // this->traffic[i]->reward-=100;
-            this->traffic[i]->terminated = true;
+            this->traffic[i]->reward-=termination_reward;
+            this->traffic[i]->silent_terminated = true;
         }
     }
 }
@@ -203,17 +220,14 @@ void ATMSim::calculate_rewards(){
     float sum=0;
     for (auto &traff : this->traffic){
 
-        float thrust=2; // rate of climb is 0, holding alt.
 
-        if (traff->infringement){
-            traff->reward-=50;
-        }
+        float thrust=10; // rate of climb is 0, holding alt.
 
         if (traff->rate_of_climb <-0.5){
             thrust = 0;
         }
         else if (traff->rate_of_climb >0.5){
-            thrust = 5;
+            thrust = 30;
         }
         // std::cout<<traff->rate_of_climb<<'\n';
         float altitude_discount = 1-(traff->position[2]/60000);
@@ -221,7 +235,7 @@ void ATMSim::calculate_rewards(){
         traff->reward-= altitude_discount*thrust; // higher altitude, less drag, climbing... more thrust.
         float distance = Utils::calculate_distance(traff->position, traff->destination->position);
         if (distance < MILE_5 && traff->speed < 170){
-            traff->reward+=10;
+            traff->reward+=5;
         } 
         if (distance > 2*MILE_5){
             traff->reward-= 10*distance;
@@ -276,19 +290,19 @@ bool ATMSim::step()
 
     this->calculate_rewards();
     // Optional, this adds cooperation reward.
-    float rewards[this->traffic.size()];
-    for (long unsigned int i =0; i<this->traffic.size(); i++){
+    // float rewards[this->traffic.size()];
+    // for (long unsigned int i =0; i<this->traffic.size(); i++){
         
-        float sum=0;
-        for (int k=0; k<N_closest; k++){
-            sum+=(this->traffic.at(i)->closest.at(k).second->reward);
-        }
-        rewards[i] = (sum/N_closest)*0.05;
-        // this->traffic.at(i)->reward+=(sum/N_closest)*0.2;
-    }
-    for (long unsigned int i =0; i<this->traffic.size(); i++){
-        this->traffic.at(i)->reward+=rewards[i];
-    }
+    //     float sum=0;
+    //     for (int k=0; k<N_closest; k++){
+    //         sum+=(this->traffic.at(i)->closest.at(k).second->reward);
+    //     }
+    //     rewards[i] = (sum/N_closest)*0.05;
+    //     // this->traffic.at(i)->reward+=(sum/N_closest)*0.2;
+    // }
+    // for (long unsigned int i =0; i<this->traffic.size(); i++){
+    //     //this->traffic.at(i)->reward+=rewards[i];
+    // }
 
     return return_val;
 }

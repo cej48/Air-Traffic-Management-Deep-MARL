@@ -65,6 +65,7 @@ class ATMInterface{
     std::string alt_to_string(float value);
 
     bool* skip_render;
+
     // std::string alt_display();
 
     public:

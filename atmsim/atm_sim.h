@@ -23,7 +23,7 @@ class ATMSim{
     bool render;
     ATMInterface* interface;
     int traffic_ID=0;
-    int traffic_timeout = 2000;
+    int traffic_timeout = 1000;
 
     void detect_closure_infringement();
     void detect_traffic_arrival();
@@ -37,6 +37,7 @@ private:
     float longitude_max;
     unsigned int max_traffic_count = 25;
     int count =0;
+    int termination_reward=1000;
 
 
 
