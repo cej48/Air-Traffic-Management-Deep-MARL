@@ -114,9 +114,8 @@ void Traffic::step(Weather *weather)
     this->position[0]+=(sin(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
     this->position[1]+=(cos(this->heading.value*(PI/180))*1/pow(60,3))*this->speed *this->scale_speed;
     this->speed += this->rate_of_speed; //*this->scale_speed;
-    verify_constraints();
     // get_closest_distances();
-
+    verify_constraints();
     if(std::isnan(this->position[0])){
         std::cout<<this->speed<<'\n';
         std::cout<<this->position<<'\n';

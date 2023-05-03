@@ -221,16 +221,15 @@ void ATMSim::calculate_rewards(){
     for (auto &traff : this->traffic){
 
 
-        float thrust=10; // rate of climb is 0, holding alt.
+        float thrust=20; // rate of climb is 0, holding alt.
 
-        if (traff->rate_of_climb <-0.5){
+        if (traff->rate_of_climb <-0.1){
             thrust = 0;
         }
-        else if (traff->rate_of_climb >0.5){
+        else if (traff->rate_of_climb >0.1){
             thrust = 30;
         }
-        // std::cout<<traff->rate_of_climb<<'\n';
-        float altitude_discount = 1-(traff->position[2]/60000);
+        float altitude_discount = 1-(traff->position[2]/41000);
         // std::cout<<altitude_discount*thrust<<'\n';
         traff->reward-= altitude_discount*thrust; // higher altitude, less drag, climbing... more thrust.
         float distance = Utils::calculate_distance(traff->position, traff->destination->position);

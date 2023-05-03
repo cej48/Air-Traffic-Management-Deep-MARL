@@ -151,10 +151,10 @@ if __name__ == "__main__":
     envs = EnvWrap()
     actor = Actor(envs)
     # device = "cpu"
-    if device == "cuda":
+    if device == torch.device("cuda"):
         actor.load_state_dict(torch.load("./saved_models/good/actor.pt"))
         actor.to(device)
-    elif device =="cpu":
+    else:
         actor.load_state_dict(torch.load("./saved_models/good/actor.pt", map_location=device))
 
     envs.single_observation_space.dtype = np.float32
