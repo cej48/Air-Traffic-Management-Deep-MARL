@@ -150,8 +150,12 @@ if __name__ == "__main__":
     # env setup
     envs = EnvWrap()
     actor = Actor(envs)
-    actor.load_state_dict(torch.load("./models/actor.pt"))
-    actor.to(device)
+    # device = "cpu"
+    if device == "cuda":
+        actor.load_state_dict(torch.load("./saved_models/good/actor.pt"))
+        actor.to(device)
+    elif device =="cpu":
+        actor.load_state_dict(torch.load("./saved_models/good/actor.pt", map_location=device))
 
     envs.single_observation_space.dtype = np.float32
     obs = envs.reset()
