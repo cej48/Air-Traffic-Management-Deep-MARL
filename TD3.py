@@ -58,13 +58,13 @@ def parse_args():
         help="the discount factor gamma")
     parser.add_argument("--tau", type=float, default=0.005,
         help="target smoothing coefficient (default: 0.005)")
-    parser.add_argument("--batch-size", type=int, default=512,
+    parser.add_argument("--batch-size", type=int, default=1024,
         help="the batch size of sample from the reply memory")
-    parser.add_argument("--policy-noise", type=float, default=0.2,
+    parser.add_argument("--policy-noise", type=float, default=0.1,
         help="the scale of policy noise")
-    parser.add_argument("--exploration-noise", type=float, default=0.2,
+    parser.add_argument("--exploration-noise", type=float, default=0.1,
         help="the scale of exploration noise")
-    parser.add_argument("--learning-starts", type=int, default=50e3,
+    parser.add_argument("--learning-starts", type=int, default=5e3,
         help="timestep to start learning")
     parser.add_argument("--policy-frequency", type=int, default=2,
         help="the frequency of training policy (delayed)")
@@ -272,7 +272,8 @@ if __name__ == "__main__":
 
         for traffic in states:
             reward+=traffic.reward
-            rewards[traffic] = 65 + ((traffic.reward))#/10
+            rewards[traffic] = -135 + ((traffic.reward))#/10
+            # print(rewards[traffic])
             # print(rewards  [traffic])
 
         observation = {i : i.get_observation() for i in envs.env.traffic}

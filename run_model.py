@@ -126,7 +126,7 @@ class Actor(nn.Module):
 
 class EnvWrap():
     def __init__(self):
-        self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0)
+        self.env = PyATMSim.ATMSim("environment_boundaries.json","airport_data.json", 1,0,0, 25)
         self.env.step()
         self.action_space = gym.spaces.Box(low=-1, high=1, shape = (3,))
         self.observation_space = gym.spaces.Box(low=-1000, high=1000, shape  = np.array(self.env.traffic[0].get_observation()).shape)
@@ -150,8 +150,12 @@ if __name__ == "__main__":
     # env setup
     envs = EnvWrap()
     actor = Actor(envs)
-    actor.load_state_dict(torch.load("./models/actor.pt"))
-    actor.to(device)
+    # device = "cpu"
+    if device == "cuda":
+        actor.load_state_dict(torch.load("./saved_models/good/actor.pt"))
+        actor.to(device)
+    elif device =="cpu":
+        actor.load_state_dict(torch.load("./saved_models/good/actor.pt", map_location=device))
 
     envs.single_observation_space.dtype = np.float32
     obs = envs.reset()
@@ -164,6 +168,12 @@ if __name__ == "__main__":
 
         states = {i : i.get_observation() for i in envs.env.traffic}  
         actions={}
+
+        for traffic in states:
+            reward=-130 + traffic.reward
+            if reward>0:
+                print(reward)
+            # print(rewards[traffic])
         with torch.no_grad():
             for state in states:
                 action = actor(torch.Tensor(states[state]).to(device))
