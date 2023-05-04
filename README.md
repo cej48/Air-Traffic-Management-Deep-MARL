@@ -1,4 +1,4 @@
-# Dependencies:
+## Dependencies:
 Pybind11
 Eigen3
 SFML
