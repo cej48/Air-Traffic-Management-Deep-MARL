@@ -92,10 +92,12 @@ if __name__ == "__main__":
     actor = Actor(envs)
     # device = "cpu"
     if device == torch.device("cuda"):
+        # actor.load_state_dict(torch.load("./saved_models/final_1024/actor.pt"))
         actor.load_state_dict(torch.load("./models/actor.pt"))
         actor.to(device)
     else:
         actor.load_state_dict(torch.load("./models/actor.pt", map_location=device))
+        # actor.load_state_dict(torch.load("./saved_models/final_1024/actor.pt", map_location=device))
 
     envs.single_observation_space.dtype = np.float32
     obs = envs.reset()
@@ -115,8 +117,11 @@ if __name__ == "__main__":
 
 
     lifespan_file = open("./results/lifespans.csv", "w+")
+    aircraft_total = 0
+    steps = 0
 
     while index < max_aircraft:
+        steps +=1
         prev = list(states)
         states = {i : i.get_observation() for i in envs.env.traffic}
         actions={}
@@ -126,6 +131,7 @@ if __name__ == "__main__":
             if reward>0:
                 print(reward)
             if traffic.terminated:
+                aircraft_total+=1
                 lifespan_file.write(str(traffic.lifespan)+'\n')
         with torch.no_grad():
             for state in states:
@@ -165,32 +171,42 @@ if __name__ == "__main__":
     altitude_file = open("./results/altitudes.csv", "w+")
     speed_file = open("./results/speeds.csv", "w+")
     distance_file = open("./results/distance.csv", "w+")
-    infringements = open(open("./results/infringements.txt", "w+"))
+    infringements = open("./results/infringements.txt", "w+")
 
     max_length = lambda dict : max([len(i) for i in dict.values()]) 
-    for i in range(max_length(altitudes)):
+
+    max_altitude = max_length(altitudes)
+    for i in range(max_altitude):
         string = ""
         for ac in range(max_aircraft):
+            altitudes[ac] = ["" for i in range(max_altitude - len(altitudes[ac]))] + altitudes[ac]
             if i < len(altitudes[ac]):
                 string += altitudes[ac][i]
             string+=","
         altitude_file.write(string + '\n')
 
-    for i in range(max_length(speeds)):
+    max_speed = max_length(speeds)
+    for i in range(max_altitude):
         string = ""
         for ac in range(max_aircraft):
+            speeds[ac] = ["" for i in range(max_altitude - len(speeds[ac]))] + speeds[ac]
             if i < len(speeds[ac]):
                 string += speeds[ac][i]
             string+=","
         speed_file.write(string + '\n')
 
-    for i in range(max_length(distances)):
+    max_distance = max_length(distances)
+    for i in range(max_distance):
         string = ""
         for ac in range(max_aircraft):
+            distances[ac] = ["" for i in range(max_altitude - len(distances[ac]))] + distances[ac]
             if i < len(distances[ac]):
                 string += distances[ac][i]
             string+=","
         distance_file.write(string + '\n')
-    infringements.write("total: " + str(envs.env.total_infringements))
-    infringements.write("near: " + str(envs.env.total_near_infringements))
+        
+    infringements.write("total: " + str(envs.env.total_infringements)+ '\n')
+    infringements.write("near: " + str(envs.env.total_near_infringements)+'\n')
+    infringements.write("total aircraft: " + str(aircraft_total)+'\n')
+    infringements.write("total steps: " + str(steps)+'\n')
     

@@ -21,7 +21,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 load_from_file = True
 
-batch_size = 512
+batch_size = 1024
 tau = 0.005
 policy_frequency = 2
 noise_clip = 0.5
@@ -42,10 +42,10 @@ class Critic(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.observation_space.shape).prod() + np.prod(env.action_space.shape), 256)
-        self.fc2 = nn.Linear(256, 512)
+        self.fc2 = nn.Linear(256, 1024)
 
-        self.fc3 = nn.Linear(512, 512)
-        self.fc4 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(1024, 1024)
+        self.fc4 = nn.Linear(1024, 256)
         self.fc5 = nn.Linear(256, 1)
 
     def forward(self, x, a):
@@ -62,9 +62,9 @@ class Actor(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.observation_space.shape).prod(), 256)
-        self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 512)
-        self.fc4 = nn.Linear(512, 256)
+        self.fc2 = nn.Linear(256, 1024)
+        self.fc3 = nn.Linear(1024, 1024)
+        self.fc4 = nn.Linear(1024, 256)
         self.fc_mu = nn.Linear(256, np.prod(env.action_space.shape))
         # action rescaling
         self.register_buffer(
@@ -269,7 +269,7 @@ if __name__ == "__main__":
             qf_loss.backward()
             q_optimizer.step()
 
-            if global_step % policy_frequency == 0:
+            if global_step % policy_frequency == 0 and global_step > 5000:
                 actor_loss = -qf1(data.observations, actor(data.observations)).mean()
                 actor_optimizer.zero_grad()
                 actor_loss.backward()
