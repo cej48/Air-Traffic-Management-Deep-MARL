@@ -2,4 +2,4 @@
 Pybind11
 Eigen3
 SFML
-nlohmann_json
+nlohmann_json\n
