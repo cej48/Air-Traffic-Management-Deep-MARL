@@ -46,6 +46,7 @@ public:
     int arrivals_sum=0;
     int total_steps=0;
     int total_infringements = 0;
+    int total_near_infringements = 0;
 
     void copy_from_other(ATMSim *other);
     void calculate_rewards();

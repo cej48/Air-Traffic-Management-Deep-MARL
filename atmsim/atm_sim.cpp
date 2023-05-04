@@ -92,6 +92,7 @@ void ATMSim::detect_closure_infringement()
 
                 this->traffic.at(i+k)->reward-=termination_reward/2;
                 this->traffic.at(k)->reward-=termination_reward/2;
+                this->total_near_infringements++;
             }        
 
             if (distance_xy<MILE_5 && distance_z<900){ // 5 miles
@@ -131,10 +132,10 @@ void ATMSim::detect_traffic_arrival()
             // std::cout<<this->traffic[i]->heading.value<<'\n';
             if (distance < MILE_5*2 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<3000){
-                this->traffic[i]->reward+=20;
+                this->traffic[i]->reward+=50;
             }
             if (this->traffic[i]->speed < 160 && distance < MILE_5 
-                && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2000){
+                && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2000&& !this->traffic[i]->infringement){
                 this->traffic[i]->reward+=100;
                 std::cout<<"Arrived"<<'\n';
                 this->arrivals_sum++;
@@ -221,24 +222,33 @@ void ATMSim::calculate_rewards(){
     for (auto &traff : this->traffic){
 
 
-        float thrust=10; // rate of climb is 0, holding alt.
+        float thrust=5; // rate of climb is 0, holding alt.
 
-        if (traff->rate_of_climb <-0.5){
+        if (traff->rate_of_climb <-0.1){
             thrust = 0;
         }
-        else if (traff->rate_of_climb >0.5){
-            thrust = 30;
+        else if (traff->rate_of_climb >0.1){
+            thrust = 65;
         }
-        // std::cout<<traff->rate_of_climb<<'\n';
-        float altitude_discount = 1-(traff->position[2]/60000);
+        // std::cout<<thrust<<'\n';
+        float altitude_discount = 1- (traff->position[2]/41000);
         // std::cout<<altitude_discount*thrust<<'\n';
         traff->reward-= altitude_discount*thrust; // higher altitude, less drag, climbing... more thrust.
         float distance = Utils::calculate_distance(traff->position, traff->destination->position);
+
         if (distance < MILE_5 && traff->speed < 170){
             traff->reward+=5;
         } 
         if (distance > 2*MILE_5){
             traff->reward-= 10*distance;
+            // if (traff->position[2] > 5000 + distance*100){
+            //    traff->reward-= 10;
+            // }
+        }
+        else{
+            if (traff->position[2] < 10000.f){
+                traff->reward+=10;
+            }
         }
         // else{
         //     traff->reward-= 2*10*MILE_5;
@@ -262,6 +272,7 @@ bool ATMSim::step()
     for (unsigned int i=0; i<this->traffic.size(); i++){
         // this->traffic[i]->reward=0;
         // reward 0 here only if step called after each traffi cset_actions()
+        this->traffic[i]->lifespan =  (this->count - this->traffic[i]->start_count);
         if (this->traffic[i]->terminated || this->traffic[i]->silent_terminated || (this->count - this->traffic[i]->start_count) > this->traffic_timeout){
             delete traffic[i];
             this->traffic.erase(traffic.begin()+i);

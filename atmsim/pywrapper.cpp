@@ -24,9 +24,7 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def_readonly("total_arrivals", &ATMSim::arrivals_sum, byref)
     .def_readonly("total_steps", &ATMSim::total_steps, byref)
     .def_readonly("total_infringements", &ATMSim::total_infringements, byref)
-    
-    // .def_readonly("observation_space", &ATMSim::observation, byref)
-    // .def_readonly("action_space", &ATMSim::action, byref)
+    .def_readonly("total_near_infringements", &ATMSim::total_near_infringements, byref)
     ;
     py::class_<Traffic> (m, "Traffic")
     .def_readonly("position", &Traffic::position, byref)
@@ -40,6 +38,8 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def_readonly("ID", &Traffic::ID, byref)
     .def_readonly("reward", &Traffic::reward, byref)
     .def_readonly("terminated", &Traffic::terminated, byref)
+    .def_readonly("distance_to", &Traffic::distance_to, byref)
+    .def_readonly("lifespan", &Traffic::lifespan, byref)
     ;
 
     py::class_<Airport> (m, "Airport")

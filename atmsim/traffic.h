@@ -52,6 +52,9 @@ public:
     float target_altitude;
 
     Heading destination_hdg;
+    float distance_to;
+
+    int lifespan;
 
     float reward=0;
     int frame_length;
