@@ -19,7 +19,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-load_from_file = False
+load_from_file = True
 
 batch_size = 512
 tau = 0.005
@@ -224,7 +224,9 @@ if __name__ == "__main__":
 
         for traffic in states:
             reward+=traffic.reward
-            rewards[traffic] = -145 + ((traffic.reward))
+            rewards[traffic] = -170 + ((traffic.reward))
+            if rewards[traffic]>0:
+                print("reward scheme failure")
 
         # Get observations from envs. 
         observation = {i : i.get_observation() for i in envs.env.traffic}
@@ -279,6 +281,7 @@ if __name__ == "__main__":
                 for param, target_param in zip(qf2.parameters(), qf2_target.parameters()):
                     target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
+        # save models.
         if global_step % 100 == 0:
             if global_step % 500==0:
                 with open("output.csv", "a+") as file:

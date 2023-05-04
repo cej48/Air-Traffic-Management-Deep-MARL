@@ -123,6 +123,7 @@ void Traffic::step(Weather *weather)
 
     this->destination_hdg.value = Utils::rad_to_deg(Utils::calculate_angle(this->position, this->destination->position));
     // std::cout<<this->destination_hdg.value<<'\n';
+    this->distance_to = Utils::calculate_distance(this->position, this->destination->position);
 }
 
 // pos x, pos y, pos z, heading, 
