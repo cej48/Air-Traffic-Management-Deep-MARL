@@ -22,7 +22,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-load_from_file = True
+load_from_file = False
 
 
 def parse_args():
@@ -58,7 +58,7 @@ def parse_args():
         help="the discount factor gamma")
     parser.add_argument("--tau", type=float, default=0.005,
         help="target smoothing coefficient (default: 0.005)")
-    parser.add_argument("--batch-size", type=int, default=1024,
+    parser.add_argument("--batch-size", type=int, default=512,
         help="the batch size of sample from the reply memory")
     parser.add_argument("--policy-noise", type=float, default=0.2,
         help="the scale of policy noise")
@@ -272,7 +272,7 @@ if __name__ == "__main__":
 
         for traffic in states:
             reward+=traffic.reward
-            rewards[traffic] = -135 + ((traffic.reward))#/10
+            rewards[traffic] = -145 + ((traffic.reward))#/10
             # print(rewards[traffic])
             # print(rewards  [traffic])
 

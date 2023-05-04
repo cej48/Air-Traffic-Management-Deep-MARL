@@ -131,7 +131,7 @@ void ATMSim::detect_traffic_arrival()
             // std::cout<<this->traffic[i]->heading.value<<'\n';
             if (distance < MILE_5*2 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<3000){
-                this->traffic[i]->reward+=20;
+                this->traffic[i]->reward+=50;
             }
             if (this->traffic[i]->speed < 160 && distance < MILE_5 
                 && abs(this->traffic[i]->position[2]- this->traffic[i]->destination->position[2])<2000){
@@ -221,23 +221,32 @@ void ATMSim::calculate_rewards(){
     for (auto &traff : this->traffic){
 
 
-        float thrust=20; // rate of climb is 0, holding alt.
+        float thrust=15; // rate of climb is 0, holding alt.
 
         if (traff->rate_of_climb <-0.1){
             thrust = 0;
         }
         else if (traff->rate_of_climb >0.1){
-            thrust = 30;
+            thrust = 15;
         }
-        float altitude_discount = 1-(traff->position[2]/41000);
+        float altitude_discount = 1-(traff->position[2]/70000);
         // std::cout<<altitude_discount*thrust<<'\n';
         traff->reward-= altitude_discount*thrust; // higher altitude, less drag, climbing... more thrust.
         float distance = Utils::calculate_distance(traff->position, traff->destination->position);
+
         if (distance < MILE_5 && traff->speed < 170){
             traff->reward+=5;
         } 
         if (distance > 2*MILE_5){
             traff->reward-= 10*distance;
+            // if (traff->position[2] > 5000 + distance*100){
+            //    traff->reward-= 10;
+            // }
+        }
+        else{
+            if (traff->position[2] < 10000.f){
+                traff->reward+=10;
+            }
         }
         // else{
         //     traff->reward-= 2*10*MILE_5;
