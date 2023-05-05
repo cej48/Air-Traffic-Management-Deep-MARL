@@ -119,8 +119,9 @@ if __name__ == "__main__":
     lifespan_file = open("./results/lifespans.csv", "w+")
     aircraft_total = 0
     steps = 0
+    ac_conflict = 0
 
-    while True:#index < max_aircraft:
+    while index < max_aircraft:
         steps +=1
         prev = list(states)
         states = {i : i.get_observation() for i in envs.env.traffic}
@@ -131,6 +132,8 @@ if __name__ == "__main__":
             if reward>0:
                 print(reward)
             if traffic.terminated:
+                if traffic.conflict_flag:
+                    ac_conflict+=1
                 aircraft_total+=1
                 lifespan_file.write(str(traffic.lifespan)+'\n')
         with torch.no_grad():
@@ -157,10 +160,10 @@ if __name__ == "__main__":
                     # altitude_file.write("NEW \n")
                     # speed_file.write("NEW\n")
                     # distance_file.write("NEW\n")
-        else:pass
-            # altitudes[index].append(str(states[aircraft][2]*41000))
-            # speeds[index].append(str(states[aircraft][4]*350))
-            # distances[index].append(str(aircraft.distance_to))
+        else:
+            altitudes[index].append(str(states[aircraft][2]*41000))
+            speeds[index].append(str(states[aircraft][4]*350))
+            distances[index].append(str(aircraft.distance_to))
 
         # prev = states[aircraft][2]*41000
         # altitude_file.write(str(states[aircraft][2]*41000) + '\n')
@@ -209,4 +212,5 @@ if __name__ == "__main__":
     infringements.write("near: " + str(envs.env.total_near_infringements)+'\n')
     infringements.write("total aircraft: " + str(aircraft_total)+'\n')
     infringements.write("total steps: " + str(steps)+'\n')
+    infringements.write("AC conflicts: "+ str(ac_conflict))
     

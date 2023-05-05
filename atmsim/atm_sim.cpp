@@ -104,6 +104,8 @@ void ATMSim::detect_closure_infringement()
                 // }
                 // this->traffic.at(i)->terminated= true;
                 // this->traffic.at(i+k)->terminated = true;
+                this->traffic.at(i)->conflict_flag = true;
+                this->traffic.at(i+k)->conflict_flag = true;
                 this->traffic.at(i)->infringement = true;
                 this->traffic.at(i+k)->infringement = true;
                 this->traffic.at(i+k)->reward-=termination_reward;

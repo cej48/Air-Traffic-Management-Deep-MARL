@@ -43,6 +43,7 @@ public:
 
     bool infringement=false;
     bool prev_infringement = false;
+    bool conflict_flag = false;
 
 
     bool potential_infringement = false;

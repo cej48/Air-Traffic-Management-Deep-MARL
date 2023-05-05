@@ -1,4 +1,5 @@
-total: 184
-near: 697
-total aircraft: 1974
-total steps: 9015
+total: 114
+near: 536
+total aircraft: 2060
+total steps: 9412
+AC conflicts: 97
