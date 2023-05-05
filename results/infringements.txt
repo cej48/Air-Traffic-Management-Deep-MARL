@@ -1,0 +1,4 @@
+total: 184
+near: 697
+total aircraft: 1974
+total steps: 9015

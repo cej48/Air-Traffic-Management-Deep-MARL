@@ -44,9 +44,9 @@ class Actor(nn.Module):
     def __init__(self, env):
         super().__init__()
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod(), 256)
-        self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 512)
-        self.fc4 = nn.Linear(512, 256)
+        self.fc2 = nn.Linear(256, 1024)
+        self.fc3 = nn.Linear(1024, 1024)
+        self.fc4 = nn.Linear(1024, 256)
         self.fc_mu = nn.Linear(256, np.prod(env.single_action_space.shape))
         # action rescaling
         self.register_buffer(
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     prev = states[aircraft][2]*41000
 
     index = 0
-    max_aircraft = 50
+    max_aircraft = 100
 
     altitudes = {i : [] for i in range(max_aircraft)}
     speeds = {i : [] for i in range(max_aircraft)}
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     aircraft_total = 0
     steps = 0
 
-    while index < max_aircraft:
+    while True:#index < max_aircraft:
         steps +=1
         prev = list(states)
         states = {i : i.get_observation() for i in envs.env.traffic}
@@ -157,10 +157,10 @@ if __name__ == "__main__":
                     # altitude_file.write("NEW \n")
                     # speed_file.write("NEW\n")
                     # distance_file.write("NEW\n")
-        else:
-            altitudes[index].append(str(states[aircraft][2]*41000))
-            speeds[index].append(str(states[aircraft][4]*350))
-            distances[index].append(str(aircraft.distance_to))
+        else:pass
+            # altitudes[index].append(str(states[aircraft][2]*41000))
+            # speeds[index].append(str(states[aircraft][4]*350))
+            # distances[index].append(str(aircraft.distance_to))
 
         # prev = states[aircraft][2]*41000
         # altitude_file.write(str(states[aircraft][2]*41000) + '\n')

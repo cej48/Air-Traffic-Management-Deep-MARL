@@ -42,7 +42,12 @@ public:
     std::string callsign;
 
     bool infringement=false;
+    bool prev_infringement = false;
 
+
+    bool potential_infringement = false;
+    bool prev_potential_infringement = false;
+    
     float rate_of_climb;
     float rate_of_turn;
     float rate_of_speed;
