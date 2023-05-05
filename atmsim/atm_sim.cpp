@@ -92,13 +92,15 @@ void ATMSim::detect_closure_infringement()
 
                 this->traffic.at(i+k)->reward-=termination_reward/2;
                 this->traffic.at(k)->reward-=termination_reward/2;
-                this->total_near_infringements++;
+                
+                this->traffic.at(i+k)->potential_infringement=true;
+                this->traffic.at(k)->potential_infringement=true;
             }        
 
             if (distance_xy<MILE_5 && distance_z<900){ // 5 miles
                 // std::cout<<"Infringement"<<'\n';
                 // if (!this->traffic.at(i)->infringement && !this->traffic.at(i+k)->infringement){
-                this->total_infringements++;
+                // this->total_infringements++;
                 // }
                 // this->traffic.at(i)->terminated= true;
                 // this->traffic.at(i+k)->terminated = true;
@@ -241,6 +243,9 @@ void ATMSim::calculate_rewards(){
         } 
         if (distance > 2*MILE_5){
             traff->reward-= 10*distance;
+            if (traff->position[2] < 5000.f){
+                traff->reward-=25;
+            }
             // if (traff->position[2] > 5000 + distance*100){
             //    traff->reward-= 10;
             // }
@@ -297,6 +302,16 @@ bool ATMSim::step()
     this->detect_closure_infringement();
     for (long unsigned int i =0; i<this->traffic.size(); i++){
         std::sort(this->traffic.at(i)->closest.begin(),this->traffic.at(i)->closest.end());
+
+        if (!this->traffic.at(i)->prev_infringement&& this->traffic.at(i)->infringement){
+            total_infringements+=1;
+        }
+        this->traffic.at(i)->prev_infringement = this->traffic.at(i)->infringement;
+
+        if (!this->traffic.at(i)->prev_potential_infringement&& this->traffic.at(i)->potential_infringement){
+            total_near_infringements+=1;
+        }
+        this->traffic.at(i)->prev_potential_infringement = this->traffic.at(i)->potential_infringement;
     }
 
     this->calculate_rewards();
