@@ -40,6 +40,7 @@ PYBIND11_MODULE(PyATMSim, m) {
     .def_readonly("terminated", &Traffic::terminated, byref)
     .def_readonly("distance_to", &Traffic::distance_to, byref)
     .def_readonly("lifespan", &Traffic::lifespan, byref)
+    .def_readonly("conflict_flag", &Traffic::conflict_flag, byref)
     ;
 
     py::class_<Airport> (m, "Airport")
